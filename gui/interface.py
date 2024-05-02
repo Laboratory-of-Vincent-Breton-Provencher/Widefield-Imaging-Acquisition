@@ -268,6 +268,9 @@ class App(QWidget):
         self.fluorescence_checkbox = QCheckBox("Blue")
         self.fluorescence_checkbox.stateChanged.connect(self.actualize_lights)
         self.image_settings_second_window.addWidget(self.fluorescence_checkbox)
+        self.fluorescenceIso_checkbox = QCheckBox("Purple")
+        self.fluorescenceIso_checkbox.stateChanged.connect(self.actualize_lights)
+        self.image_settings_second_window.addWidget(self.fluorescenceIso_checkbox)
 
         self.light_channel_layout = QHBoxLayout()
         self.preview_light_label = QLabel("Light Channel Preview")
@@ -973,6 +976,7 @@ class App(QWidget):
         self.red_checkbox.setChecked("red" in lights)
         self.green_checkbox.setChecked("green" in lights)
         self.fluorescence_checkbox.setChecked("blue" in lights)
+        self.fluorescenceIso_checkbox.setChecked("purple" in lights)
 
     def run(self):
         """Run the experiment"""
@@ -1341,6 +1345,8 @@ class App(QWidget):
                 self.daq.lights.append(Instrument(self.ports["green"], "green"))
             if self.fluorescence_checkbox.isChecked():
                 self.daq.lights.append(Instrument(self.ports["blue"], "blue"))
+            if self.fluorescenceIso_checkbox.isChecked():
+                self.daq.lights.append(Instrument(self.ports["purple"], "purple"))
             self.daq.framerate = int(self.framerate_cell.text())
             self.daq.exposure = int(self.exposure_cell.text()) / 1000
             self.camera.frames = []
@@ -1690,6 +1696,7 @@ class App(QWidget):
             self.red_checkbox,
             self.green_checkbox,
             self.fluorescence_checkbox,
+            self.fluorescenceIso_checkbox,
         ]:
             if checkbox.isChecked():
                 count += 1
@@ -1703,7 +1710,7 @@ class App(QWidget):
             self.preview_light_combo.setEnabled(False)
         else:
             self.preview_light_combo.setEnabled(True)
-        for i in range(4):
+        for i in range(5):
             if i < self.count_lights()[0]:
                 self.preview_light_combo.addItem(self.count_lights()[1][i])
 
