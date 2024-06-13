@@ -35,7 +35,7 @@
   <h3 align="center">Widefield Imaging Acquisition</h3>
 
   <p align="center">
-    A Python program to acquire widefield brain images using laser speckle, GCaMP fluorescence and intrinsic optical imaging.
+    A Python program to acquire widefield brain images using laser speckle, GCaMP fluorescence and intrinsic optical imaging. This program is originally from the laboraty of Michèle Desjardins. It has been adapted for a project at le Centre de Recherche CERVO.
     <br />
     <a href="https://midesjardins.github.io/Widefield-Imaging-Acquisition/"><strong>Explore the docs »</strong></a>
     <br />
