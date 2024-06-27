@@ -1,8 +1,8 @@
 //To control camera and light source. Also control mode
-int FPS = 5; //Hz, 40 FP au 6e, 50 pour moi
+int FPS = 40; //Hz, 40 FP au 6e, 50 pour moi
 bool FLAG = 0; // for camera trigegr
-int camDelay = 5000; //delay between light changes and camera trigger, 5 ms, to avoid bleedthrought between channels (bon terme?)
-int camSig = 20000 + camDelay; // Duration of camera trigger signal (peak), 2 ms
+int camDelay = 150; //delay between light changes and camera trigger, 0.5 ms, to avoid bleedthrought between channels (bon terme?)
+int camSig = 100 + camDelay; // Duration of camera trigger signal (peak), 0.5 ms
 
 unsigned long timeNow = 0;
 unsigned long lastBlink = micros();
@@ -179,19 +179,12 @@ void loop() {
     if (timeNow - lastBlink > camSig) {
       digitalWrite(CAM, LOW);
     }
-  }  //after time CamSig, turns camera trigger signal off
+  }  
+  
+  //after time CamSig, turns camera trigger signal off
   // Serial.println(analogRead(AnalogPin));   // for debugging
 
   
-//   if (digitalRead(MODE_BV) > 0){ // MODE BV (pin 12): Alternate between blue and violet 
-//     if (FLAG == 0){
-//       digitalWrite(LED05,HIGH);
-// //      FLAG = 1;
-//     } else {
-//       digitalWrite(LED470,HIGH);
-// //      FLAG = 0;
-//     }
-//   }
 // //  Change frame pin up or down
 //   if (FLAG == 0){
 //     digitalWrite(FRAME,HIGH);
