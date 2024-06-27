@@ -19,6 +19,8 @@ bool FLAG470 = 0;
 bool FLAG525 = 0;
 bool FLAG630 = 0;
 bool FLAG785 = 0;
+bool FLAG_ONOFF = 0;
+bool FLAG_R = 0;
 
 int val = 0; // serial read value, for light selection
 
@@ -97,7 +99,10 @@ void loop() {
     } else if (val == '5'){
         if (FLAG785 == 0){FLAG785 = 1;}
         else if (FLAG785 == 1){FLAG785 = 0;}
-    } else {
+    } else if (val == 'N'){FLAG_ONOFF = 1;}
+      else if (val == 'F'){FLAG_ONOFF = 0;}
+      else if (val == 'R'){FLAG_R = 1;}
+    else if (val == '6'){
       FLAG405 = 1;
       FLAG470 = 1;
       FLAG525 = 1;
@@ -105,68 +110,44 @@ void loop() {
       FLAG785 = 1;
     }
 
-    //  switch (val){    // didn't work, used if instead
+    if (FLAG_R == 1){
+      digitalWrite(PINMODE_405, LOW);
+      digitalWrite(PINMODE_470, LOW);
+      digitalWrite(PINMODE_525, LOW);
+      digitalWrite(PINMODE_630, LOW);
+      digitalWrite(PINMODE_785, LOW);
+      FLAG = 0;
+      delay(1000); // pause de 1s pour tout
+      FLAG_R = 0;
+      FLAG_ONOFF = 1;
+    }
 
-    //  case '0':
-    //   FLAG405 = 0;
-    //   FLAG470 = 0;
-    //   FLAG525 = 0;
-    //   FLAG630 = 0;
-    //   FLAG785 = 0;
-    //   break;
-    //  case '1':    // 405 nm
-    //   if (FLAG405 == 0){FLAG405 = 1;}
-    //   else {FLAG405 = 0;}
-    //   break;
-    //  case '2':    // 470 nm
-    //   if (FLAG470 == 0){FLAG470 = 1;}
-    //   else {FLAG470 = 0;}
-    //   break;
-    //  case '3':    // 525 nm
-    //   if (FLAG525 == 0){FLAG525 = 1;}
-    //   else {FLAG525 = 0;}
-    //   break;
-    //  case '4':    // 630 nm
-    //   if (FLAG630 == 0){FLAG630 = 1;}
-    //   else {FLAG630 = 0;}
-    //   break;
-    //  case '5':    // 785 nm
-    //   if (FLAG785 == 0){FLAG785 = 1;}
-    //   else {FLAG785 = 0;}
-    //   break;
-    //  default:  // reflectance only
-    //   FLAG405 = 1;
-    //   FLAG470 = 1;
-    //   FLAG525 = 1;
-    //   FLAG630 = 1;
-    //   FLAG785 = 0;
-    //   break;
-    //  }
-       
-     //Turn off camera for 2 sec. This helps to know bonsai when camera starts and when arduino starts   
-     digitalWrite(PINMODE_405, LOW);
-     digitalWrite(PINMODE_470, LOW);
-     digitalWrite(PINMODE_525, LOW);
-     digitalWrite(PINMODE_630, LOW);
-     digitalWrite(PINMODE_785, LOW);
-     FLAG = 0; // reset counter to zero
-    //  delay(2000); // pause for 2000 ms
-     
-    if (FLAG405 == 1){
-      digitalWrite(PINMODE_405, HIGH);
-    } else {digitalWrite(PINMODE_405, LOW);}
-    if (FLAG470 == 1){
-      digitalWrite(PINMODE_470, HIGH);
-    } else {digitalWrite(PINMODE_470, LOW);}
-    if (FLAG525 == 1){
-      digitalWrite(PINMODE_525, HIGH);
-    } else {digitalWrite(PINMODE_525, LOW);}
-    if (FLAG630 == 1){
-      digitalWrite(PINMODE_630, HIGH);
-    } else {digitalWrite(PINMODE_630, LOW);}
-    if (FLAG785 == 1){
-      digitalWrite(PINMODE_785, HIGH);
-    } else {digitalWrite(PINMODE_785, LOW);}
+    if (FLAG_ONOFF == 0){
+      digitalWrite(PINMODE_405, LOW);
+      digitalWrite(PINMODE_470, LOW);
+      digitalWrite(PINMODE_525, LOW);
+      digitalWrite(PINMODE_630, LOW);
+      digitalWrite(PINMODE_785, LOW);
+      FLAG = 0;
+    }
+
+    else if (FLAG_ONOFF == 1){ 
+      if (FLAG405 == 1){
+        digitalWrite(PINMODE_405, HIGH);
+      } else {digitalWrite(PINMODE_405, LOW);}
+      if (FLAG470 == 1){
+        digitalWrite(PINMODE_470, HIGH);
+      } else {digitalWrite(PINMODE_470, LOW);}
+      if (FLAG525 == 1){
+        digitalWrite(PINMODE_525, HIGH);
+      } else {digitalWrite(PINMODE_525, LOW);}
+      if (FLAG630 == 1){
+        digitalWrite(PINMODE_630, HIGH);
+      } else {digitalWrite(PINMODE_630, LOW);}
+      if (FLAG785 == 1){
+        digitalWrite(PINMODE_785, HIGH);
+      } else {digitalWrite(PINMODE_785, LOW);}
+    }
   }
 
   val405 = digitalRead(in_405);
