@@ -4,3 +4,4 @@ __pycache__
 .vs/
 .DS_Store
 data
+WFenv/
