@@ -119,7 +119,7 @@ void loop() {
       FLAG = 0;
       delay(1000); // pause de 1s pour tout
       FLAG_R = 0;
-      FLAG_ONOFF = 1;
+      FLAG_ONOFF = 0;
     }
 
     if (FLAG_ONOFF == 0){
