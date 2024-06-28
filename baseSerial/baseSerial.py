@@ -39,7 +39,7 @@ else:
 # dataFile = open("WFdata.csv", 'w')
 
 def getValues():
-    arduinoData = ser.readline().decode('ascii').split('\r\n')
+    arduinoData = ser.readline()#.decode('ascii')#.split('\r\n')
     return arduinoData[0]
 
 

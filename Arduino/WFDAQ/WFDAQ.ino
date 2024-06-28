@@ -22,6 +22,8 @@ bool FLAG785 = 0;
 bool FLAG_ONOFF = 0;
 bool FLAG_R = 0;
 
+
+// Other values 
 int val = 0; // serial read value, for light selection
 
 int val405 = 0;
@@ -36,7 +38,7 @@ int prev525 = 0;
 int prev630 = 0;
 int prev785 = 0;
 
-
+unsigned long currentTime = millis();
 int valTTL = 0;
 int FLAG = 0; // Increase from 0 to 9 and reset
 
@@ -120,6 +122,7 @@ void loop() {
       delay(1000); // pause de 1s pour tout
       FLAG_R = 0;
       FLAG_ONOFF = 0;
+      
     }
 
     if (FLAG_ONOFF == 0){
@@ -159,11 +162,14 @@ void loop() {
   valTTL = digitalRead(TTL);
 
   if ((val405 - prev405) > 0 || (val470 - prev470) > 0 || (val525 - prev525) > 0 || (val630 - prev630) > 0 || (val785 - prev785) > 0) { // only print at the onset of every frame
+    Serial.print(currentTime);
+    Serial.print('ms - Lights: ');
     Serial.print(val405);
     Serial.print(val470);
     Serial.print(val525);
     Serial.print(val630);
     Serial.print(val785);
+    Serial.print(' - TTL: ');
     Serial.print(valTTL);
     Serial.println(padding( FLAG, 4));  
     
