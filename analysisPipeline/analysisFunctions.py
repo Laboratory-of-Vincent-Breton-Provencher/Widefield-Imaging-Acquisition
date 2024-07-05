@@ -1,5 +1,5 @@
 import numpy as np
-from matplotlib import pyplot as plt
+# from matplotlib import pyplot as plt
 
 def normalizeData(data:list) -> list:
     """
@@ -71,7 +71,12 @@ def oxygenation(greenData: list, redData: list) -> tuple:
             
         iniIntens = intensity[:,:,0][..., np.newaxis]
         iniIntens[np.where(iniIntens == 0)] = 1
-        mu = (-1/X)* np.log(intensity/iniIntens)
+        # np.where(iniIntens == 0, 1, iniIntens)
+        # print(np.shape(iniIntens))
+        with open('iniIntens{}.txt'.format(wavelength), 'w') as outfile:
+            for dataslice in iniIntens:
+                np.savetxt(outfile, dataslice)
+        mu = (-1/X)* np.log(intensity[:,:,1:]/iniIntens)
         return mu
 
     mu_530 = absorptionCoefficientVariation(greenData, 530)
