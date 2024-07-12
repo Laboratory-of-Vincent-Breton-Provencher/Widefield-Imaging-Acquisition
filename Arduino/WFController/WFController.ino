@@ -1,8 +1,8 @@
 //To control camera and light source. Also control mode
 int FPS = 40; //Hz, 40 FP au 6e, 50 pour moi
 bool FLAG = 0; // for camera trigegr
-int camDelay = 150; //delay between light changes and camera trigger, 0.5 ms, to avoid bleedthrought between channels (bon terme?)
-int camSig = 100 + camDelay; // Duration of camera trigger signal (peak), 0.5 ms
+int camDelay = 10000; //delay between light changes and camera trigger, 0.5 ms, to avoid bleedthrought between channels (bon terme?)
+int camSig = 1000 + camDelay; // Duration of camera trigger signal (peak), 0.5 ms
 
 unsigned long timeNow = 0;
 unsigned long lastBlink = micros();
