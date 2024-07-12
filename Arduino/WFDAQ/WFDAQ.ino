@@ -4,6 +4,7 @@ int PINMODE_470 = 9;
 int PINMODE_525 = 10; 
 int PINMODE_630 = 11; 
 int PINMODE_785 = 12; 
+int AIRPUFFS = 13;
 
 //DEFINE INPUT PINS
 int in_405 = 3;
@@ -38,14 +39,15 @@ int prev525 = 0;
 int prev630 = 0;
 int prev785 = 0;
 
-unsigned long currentTime = millis();
+unsigned long currentTime = 0;
+unsigned long previousTime = 0;
 int valTTL = 0;
 int FLAG = 0; // Increase from 0 to 9 and reset
 
 
 void setup() {
    // initialize serial communication at 9600 bits per second: (default for communicating with Bonsai)
-  Serial.begin(9600);
+  Serial.begin(19200);
 
   // OUTPUT PINS
   pinMode(PINMODE_405, OUTPUT);
@@ -53,6 +55,7 @@ void setup() {
   pinMode(PINMODE_525, OUTPUT);
   pinMode(PINMODE_630, OUTPUT);
   pinMode(PINMODE_785, OUTPUT);
+  pinMode(AIRPUFFS, OUTPUT);
 
   // Light selection
   digitalWrite(PINMODE_405, LOW);
@@ -60,6 +63,8 @@ void setup() {
   digitalWrite(PINMODE_525, LOW);
   digitalWrite(PINMODE_630, LOW);
   digitalWrite(PINMODE_785, LOW);
+
+  digitalWrite(AIRPUFFS, LOW);
 
   // INPUT PINS
   pinMode(in_405, INPUT);
@@ -72,13 +77,14 @@ void setup() {
   }
 
 void loop() {
+  currentTime = millis() - previousTime;
  //wait for a command or loop the code in mode > 0
   //while(!(Serial.available()) && mode == 0);
 
   // Update mode if a command is sent through serial port
   if (Serial.available()){
     val = Serial.read();
-    Serial.println(val, DEC);
+    //Serial.println(val, DEC);
     
     if (val == '0'){
       FLAG405 = 0;
@@ -118,11 +124,12 @@ void loop() {
       digitalWrite(PINMODE_525, LOW);
       digitalWrite(PINMODE_630, LOW);
       digitalWrite(PINMODE_785, LOW);
+      digitalWrite(AIRPUFFS, LOW);
       FLAG = 0;
       delay(1000); // pause de 1s pour tout
       FLAG_R = 0;
       FLAG_ONOFF = 0;
-      
+      previousTime = millis();
     }
 
     if (FLAG_ONOFF == 0){
@@ -131,10 +138,12 @@ void loop() {
       digitalWrite(PINMODE_525, LOW);
       digitalWrite(PINMODE_630, LOW);
       digitalWrite(PINMODE_785, LOW);
+      digitalWrite(AIRPUFFS, LOW);
       FLAG = 0;
     }
 
     else if (FLAG_ONOFF == 1){ 
+      digitalWrite(AIRPUFFS, HIGH);
       if (FLAG405 == 1){
         digitalWrite(PINMODE_405, HIGH);
       } else {digitalWrite(PINMODE_405, LOW);}
@@ -163,15 +172,16 @@ void loop() {
 
   if ((val405 - prev405) > 0 || (val470 - prev470) > 0 || (val525 - prev525) > 0 || (val630 - prev630) > 0 || (val785 - prev785) > 0) { // only print at the onset of every frame
     Serial.print(currentTime);
-    Serial.print('ms - Lights: ');
+    Serial.print("ms - Lights: ");
     Serial.print(val405);
     Serial.print(val470);
     Serial.print(val525);
     Serial.print(val630);
     Serial.print(val785);
-    Serial.print(' - TTL: ');
+    Serial.print(" - TTL: ");
     Serial.print(valTTL);
     Serial.println(padding( FLAG, 4));  
+    // Serial.println("Hello world");
     
     FLAG += 1;
     if (FLAG > 9999){
