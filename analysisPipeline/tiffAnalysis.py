@@ -70,10 +70,13 @@ for idx, file in enumerate(tqdm(filesListG)):
 
 # IOI
 
+print("Analyzing data")
+
 n_greenArray = aF.normalizeData(greenArray)
 n_redArray =aF.normalizeData(redArray)
 HbR, HbO = aF.oxygenation(n_greenArray, n_redArray)
 
+print("Analysis completed")
 
 # print('Creating and saving images')
 
