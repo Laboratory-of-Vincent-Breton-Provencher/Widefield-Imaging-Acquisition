@@ -153,5 +153,6 @@ def oxygenation(greenData: list, redData: list) -> tuple:
     dc_HbO = (eHbR_530*mu_625 - eHbR_625*mu_530)/(eHbR_530*eHbO_625 + eHbR_625*eHbO_530)
 
     return (dc_HbR, dc_HbO)
-    
-splitChannels()
+
+if __name__ == "__main__":
+    splitChannels()
