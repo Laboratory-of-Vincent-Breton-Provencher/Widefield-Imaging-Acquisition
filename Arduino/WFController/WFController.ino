@@ -5,7 +5,7 @@ int camDelay = 8000; //delay between light changes and camera trigger, 0.5 ms, t
 int camSig = 1000 + camDelay; // Duration of camera trigger signal (peak), 0.5 ms
 
 unsigned long timeNow = 0;
-unsigned long lastBlink = micros();
+unsigned long lastBlink = micros()-1000000/FPS;     // offset added to make sure LED will turn on on first cycle
 
 
 //DEFINE OUTPUT PINS

@@ -5,16 +5,4 @@ __pycache__
 .DS_Store
 data
 WFenv/
-gcmp/GCaMP_0.tiff
-gcmp/GCaMP_1.tiff
-gcmp/GCaMP_2.tiff
-gcmp/GCaMP_3.tiff
-gcmp/GCaMP_4.tiff
-gcmp/GCaMP_5.tiff
-gcmp/GCaMP_6.tiff
-gcmp/GCaMP_7.tiff
-gcmp/GCaMP_8.tiff
-gcmp/GCaMP_9.tiff
-gcmp/GCaMP_10.tiff
-gcmp/GCaMP_11.tiff
-gcmp/GCaMP_12.tiff
+2024-06-28_analysisresults/
