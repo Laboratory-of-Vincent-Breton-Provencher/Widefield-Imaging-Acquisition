@@ -1,7 +1,7 @@
 //To control camera and light source. Also control mode
-int FPS = 40; //Hz, 40 FP au 6e, 50 pour moi
+int FPS = 50; //Hz, 40 FP au 6e, 50 pour moi
 bool FLAG = 0; // for camera trigegr
-int camDelay = 10000; //delay between light changes and camera trigger, 0.5 ms, to avoid bleedthrought between channels (bon terme?)
+int camDelay = 8000; //delay between light changes and camera trigger, 0.5 ms, to avoid bleedthrought between channels (bon terme?)
 int camSig = 1000 + camDelay; // Duration of camera trigger signal (peak), 0.5 ms
 
 unsigned long timeNow = 0;
@@ -168,7 +168,7 @@ void loop() {
   }  // end temporal loop for light changing
 
   else {
-    if (digitalRead(STATUS405) == HIGH || digitalRead(STATUS470) == HIGH || digitalRead(STATUS525) == HIGH || digitalRead(STATUS630) == HIGH || digitalRead(STATUS785) == HIGH){
+    if (digitalRead(LED405) == HIGH || digitalRead(LED470) == HIGH || digitalRead(LED525) == HIGH || digitalRead(LED630) == HIGH || digitalRead(LED785) == HIGH){
       if (FLAG == 1){
         if (timeNow - lastBlink > camDelay){
           digitalWrite(CAM, HIGH);
