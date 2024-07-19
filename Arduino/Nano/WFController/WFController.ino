@@ -1,5 +1,5 @@
 //To control camera and light source. Also control mode
-int FPS = 50; //Hz, 40 FP au 6e, 50 pour moi
+int FPS = 10; //Hz, 40 FP au 6e, 50 pour moi
 bool FLAG = 0; // for camera trigegr
 int camDelay = 8000; //delay between light changes and camera trigger, 0.5 ms, to avoid bleedthrought between channels (bon terme?)
 int camSig = 1000 + camDelay; // Duration of camera trigger signal (peak), 0.5 ms
@@ -9,7 +9,7 @@ unsigned long lastBlink = micros()-1000000/FPS;     // offset added to make sure
 
 
 //DEFINE OUTPUT PINS
-int CAM = 2; // Camera trigger
+int CAM = 13; // Camera trigger
 // int FRAME = 13;
 int LED405 = 8;
 int LED470 = 9;
@@ -23,6 +23,7 @@ int STATUS470 = 4; //
 int STATUS525 = 5; //
 int STATUS630 = 6; //
 int STATUS785 = 7; //
+
 int AnalogPin = A5; // Debugging
 
 
