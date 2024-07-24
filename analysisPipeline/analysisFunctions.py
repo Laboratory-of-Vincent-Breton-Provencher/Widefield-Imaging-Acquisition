@@ -7,52 +7,6 @@ from tqdm import tqdm
 import shutil
 
 
-# def splitChannels(FLAG405:bool = 1, FLAG470:bool = 1, FLAG530:bool = 1, FLAG625:bool = 1, FLAG785:bool = 1, fin:int=100) ->tuple:
-#     # folderPath:str,
-#     """_summary_
-
-#     Args:
-#         folderPath (str): _description_
-#         FLAG405 (bool, optional): _description_. Defaults to 1.
-#         FLAG470 (bool, optional): _description_. Defaults to 1.
-#         FLAG530 (bool, optional): _description_. Defaults to 1.
-#         FLAG625 (bool, optional): _description_. Defaults to 1.
-#         FLAG785 (bool, optional): _description_. Defaults to 1.
-#         fin (int, optional): _description_. Defaults to 100.
-
-#     Returns:
-#         tuple: _description_
-#     """
-
-#     root = Tk()
-#     root.withdraw()
-#     folderPath = filedialog.askdirectory()
-
-#     FLAGS = {"FLAG405":FLAG405, "FLAG470":FLAG470, "FLAG530":FLAG530, "FLAG630":FLAG625, "FLAG785":FLAG785}
-#     for flagName, flag in zip(FLAGS.keys, FLAGS.values):
-#         if flag:
-#             os.mkdir()
-
-
-#     filesList = os.listdir(folderPath)
-#     filesPaths = []
-#     for idx, file in enumerate(tqdm(filesList)):
-#         filesPaths.append(folderPath + "\\" + file)
-
-#     filesPaths.sort(key=lambda x: os.path.getmtime(x))
-#     filesPaths = filesPaths[1:]
-
-#     fin = 100
-
-#     filesList405 = filesPaths[0:fin:5]
-#     filesList470 = filesPaths[1:fin:5]
-#     filesList530 = filesPaths[2:fin:5]
-#     filesList625 = filesPaths[3:fin:5]
-#     filesList785 = filesPaths[4:fin:5]
-
-#     return (filesList405, filesList470, filesList530, filesList625, filesList785)
-
-
 def normalizeData(data:list, dim:int=3) -> list:
     """_summary_
 
