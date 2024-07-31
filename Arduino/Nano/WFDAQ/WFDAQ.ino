@@ -6,6 +6,7 @@ int PINMODE_630 = 9;
 int PINMODE_785 = 8; 
 
 int AIRPUFFS = 13;
+int ONOFF = 1;
 
 //DEFINE INPUT PINS
 int in_405 = 7;
@@ -58,6 +59,7 @@ void setup() {
   pinMode(PINMODE_630, OUTPUT);
   pinMode(PINMODE_785, OUTPUT);
   pinMode(AIRPUFFS, OUTPUT);
+  pinMode(ONOFF, OUTPUT);
 
   // Light selection
   digitalWrite(PINMODE_405, LOW);
@@ -65,8 +67,8 @@ void setup() {
   digitalWrite(PINMODE_525, LOW);
   digitalWrite(PINMODE_630, LOW);
   digitalWrite(PINMODE_785, LOW);
-
   digitalWrite(AIRPUFFS, LOW);
+  digitalWrite(ONOFF, LOW);
 
   // INPUT PINS
   pinMode(in_405, INPUT);
@@ -94,24 +96,27 @@ void loop() {
       FLAG525 = 0;
       FLAG630 = 0;
       FLAG785 = 0;
-    } else if (val == '1'){
+    } 
+    else if (val == '1'){
         if (FLAG405 == 0){FLAG405 = 1;}
         else if (FLAG405 == 1) {FLAG405 = 0;}
-    } else if (val == '2'){
+    } 
+    else if (val == '2'){
         if (FLAG470 == 0){FLAG470 = 1;}
         else if (FLAG470 == 1){FLAG470 = 0;}
-    } else if (val == '3'){
+    } 
+    else if (val == '3'){
         if (FLAG525 == 0){FLAG525 = 1;}
         else if (FLAG525 == 1){FLAG525 = 0;}
-    } else if (val == '4'){
+    } 
+    else if (val == '4'){
         if (FLAG630 == 0){FLAG630 = 1;}
         else if (FLAG630 == 1){FLAG630 = 0;}
-    } else if (val == '5'){
+    } 
+    else if (val == '5'){
         if (FLAG785 == 0){FLAG785 = 1;}
         else if (FLAG785 == 1){FLAG785 = 0;}
-    } else if (val == 'N'){FLAG_ONOFF = 1;}
-      else if (val == 'F'){FLAG_ONOFF = 0;}
-      else if (val == 'R'){FLAG_R = 1;}
+    } 
     else if (val == '6'){
       FLAG405 = 1;
       FLAG470 = 1;
@@ -119,51 +124,63 @@ void loop() {
       FLAG630 = 1;
       FLAG785 = 1;
     }
+    else if (val == 'N'){FLAG_ONOFF = 1;}
+    else if (val == 'F'){FLAG_ONOFF = 0;}
+    else if (val == 'R'){FLAG_R = 1;}
+  
 
+    // RESET
     if (FLAG_R == 1){
       FLAG405 = 0;
       FLAG470 = 0;
       FLAG525 = 0;
       FLAG630 = 0;
       FLAG785 = 0;
-      digitalWrite(AIRPUFFS, LOW);
-      FLAG = 0;
-      delay(1000); // pause de 1s pour tout
-      FLAG_R = 0;
       FLAG_ONOFF = 0;
+      FLAG = 0;
+      FLAG_R = 0;
       previousTime = millis();
     }
 
+    // OFF
     if (FLAG_ONOFF == 0){
-      digitalWrite(PINMODE_405, LOW);
-      digitalWrite(PINMODE_470, LOW);
-      digitalWrite(PINMODE_525, LOW);
-      digitalWrite(PINMODE_630, LOW);
-      digitalWrite(PINMODE_785, LOW);
+      // digitalWrite(PINMODE_405, LOW);
+      // digitalWrite(PINMODE_470, LOW);
+      // digitalWrite(PINMODE_525, LOW);
+      // digitalWrite(PINMODE_630, LOW);
+      // digitalWrite(PINMODE_785, LOW);
       digitalWrite(AIRPUFFS, LOW);
+      digitalWrite(ONOFF, LOW);
       FLAG = 0;
     }
 
+    // ON
     else if (FLAG_ONOFF == 1){ 
       digitalWrite(AIRPUFFS, HIGH);
-      if (FLAG405 == 1){
-        digitalWrite(PINMODE_405, HIGH);
-      } else {digitalWrite(PINMODE_405, LOW);}
-      if (FLAG470 == 1){
-        digitalWrite(PINMODE_470, HIGH);
-      } else {digitalWrite(PINMODE_470, LOW);}
-      if (FLAG525 == 1){
-        digitalWrite(PINMODE_525, HIGH);
-      } else {digitalWrite(PINMODE_525, LOW);}
-      if (FLAG630 == 1){
-        digitalWrite(PINMODE_630, HIGH);
-      } else {digitalWrite(PINMODE_630, LOW);}
-      if (FLAG785 == 1){
-        digitalWrite(PINMODE_785, HIGH);
-      } else {digitalWrite(PINMODE_785, LOW);}
-    }
-  }
+      digitalWrite(ONOFF, HIGH);
+    }      
+    
+    // Lights selection
+    if (FLAG405 == 1){
+      digitalWrite(PINMODE_405, HIGH);
+    } else {digitalWrite(PINMODE_405, LOW);}
+    if (FLAG470 == 1){
+      digitalWrite(PINMODE_470, HIGH);
+    } else {digitalWrite(PINMODE_470, LOW);}
+    if (FLAG525 == 1){
+      digitalWrite(PINMODE_525, HIGH);
+    } else {digitalWrite(PINMODE_525, LOW);}
+    if (FLAG630 == 1){
+      digitalWrite(PINMODE_630, HIGH);
+    } else {digitalWrite(PINMODE_630, LOW);}
+    if (FLAG785 == 1){
+      digitalWrite(PINMODE_785, HIGH);
+    } else {digitalWrite(PINMODE_785, LOW);}
 
+  } // end serial read instructions
+  
+
+  // Serial print log
   val405 = digitalRead(in_405);
   val470 = digitalRead(in_470);
   val525 = digitalRead(in_525);
