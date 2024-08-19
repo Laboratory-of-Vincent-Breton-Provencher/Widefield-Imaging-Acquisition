@@ -1,4 +1,3 @@
-#%%
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
@@ -22,7 +21,6 @@ import sys
 from threading import Thread
 import math
 from pathlib import Path
-#%% 
 
 class WFmovie():
     def __init__(self, folder_path=None, channel=None, movie=None, memmap = False):
@@ -536,7 +534,7 @@ def resample(y1, f1, f2, n):
             Y[i] = y1[-1]
     return Y
 
-#%%
+
 def ioi_path_length_factor(lambda1, lambda2, npoints):
     """
     Return the pathlength values in cm from Ma. et al., Phil. Trans. R. Soc. B 371: 20150360.
@@ -600,7 +598,7 @@ def ioi_get_extinctions(lambda1, lambda2, npoints):
     ext_HbR = np.interp(xi, x, y_HbR)
     return ext_HbO, ext_HbR
 
-#%%
+
 def ioi_epsilon_pathlength(lambda1, lambda2, npoints, baseline_hbt, baseline_hbo, baseline_hbr, filter):
     """
     Returns the extinction coefficient*pathlength curve for Hbo and HbR as a function of wavelength between lambda1 and lambda2
@@ -620,8 +618,6 @@ def ioi_epsilon_pathlength(lambda1, lambda2, npoints, baseline_hbt, baseline_hbo
         2d matrix of the epsilon*pathlength values for both imaging wavelengths (rows) and chromophores (columns) in 1/M.
         This matrix is used to solve the modified Beer-Lambert equation for HbO and HbR concentration changes.
     """
-    #%%
-
     os.chdir(r"C:\Users\gabri\Documents\Université\Maitrise\Projet\Widefield-Imaging-Acquisition")
     wl = np.linspace(lambda1, lambda2, npoints)
     # c_camera
@@ -639,7 +635,6 @@ def ioi_epsilon_pathlength(lambda1, lambda2, npoints, baseline_hbt, baseline_hbo
     c_led = np.array([c_FBH530, c_FBH630])
     FBH530, FBH630, c_FBH530, c_FBH630, f = None, None, None, None, None 
     c_tot = baseline_hbt*10**-6  # Rough baseline concentrations in M
-
     c_pathlength = ioi_path_length_factor(lambda1, lambda2, npoints)
     c_ext_hbo, c_ext_hbr = ioi_get_extinctions(lambda1, lambda2, npoints)
     # Create vectors of values for the fits
@@ -657,16 +652,15 @@ def ioi_epsilon_pathlength(lambda1, lambda2, npoints, baseline_hbt, baseline_hbo
         IHbO = IHbO/np.max(IHbO)
         IHbR = IHbR/np.max(IHbR)
         # Compute effective eps
-        plt.plot(c_camera*c_led[iled]*np.exp(-c_ext_hbr*c_pathlength*CHbO[iconc]), 'r.')
-        plt.plot(c_camera*c_led[iled]*np.exp(-c_ext_hbo*c_pathlength*CHbR[iconc]), 'g.')
+        # plt.plot(c_camera*c_led[iled]*np.exp(-c_ext_hbr*c_pathlength*CHbO[iconc]), 'r.')
+        # plt.plot(c_camera*c_led[iled]*np.exp(-c_ext_hbo*c_pathlength*CHbR[iconc]), 'g.')
         p1 = np.polyfit(CHbO, -np.log(IHbO), 1)
         p2 = np.polyfit(CHbR, -np.log(IHbR), 1)
         HbOL = p1[0]
         HbRL = p2[0]
         eps_pathlength[iled, 0] = HbOL
         eps_pathlength[iled, 1] = HbRL
-    print(eps_pathlength)
-        #%%
+    # print(eps_pathlength)
     return eps_pathlength
 
 
@@ -684,7 +678,6 @@ def convert_to_hb(R_green, R_red, filter=False):
     d_HbO/d_HbR : ndarrays
         HbO and HbR concentration changes in M. The output shape is the same as green/red.
     """
-    #%%
     #Parameters
     lambda1 = 450 #nm
     lambda2 = 700 #nm
@@ -692,7 +685,6 @@ def convert_to_hb(R_green, R_red, filter=False):
     baseline_hbt = 100 #uM
     baseline_hbo = 60 #uM
     baseline_hbr = 40 #uM
-    #%%
     
     eps_pathlength = ioi_epsilon_pathlength(lambda1, lambda2, npoints, baseline_hbt, baseline_hbo, baseline_hbr, filter)
     Ainv = np.linalg.pinv(eps_pathlength)
@@ -804,21 +796,18 @@ def save_figures_as_gif(path, figures, fps=30):
         
     
 
-
 if __name__ == "__main__":
-#%%
-    pathBase = r"C:\Users\gabri\Desktop\testAnalyse\2024_07_18"
-    green = np.loadtxt(pathBase + "\\csv\\530.csv", skiprows=1, delimiter=',')[:,1]
-    red = np.loadtxt(pathBase + "\\csv\\625.csv", skiprows=1, delimiter=',')[:,1]
+    # pathBase = r"C:\Users\gabri\Desktop\testAnalyse\2024_07_18"
+    # green = np.loadtxt(pathBase + "\\csv\\530.csv", skiprows=1, delimiter=',')[:,1]
+    # red = np.loadtxt(pathBase + "\\csv\\625.csv", skiprows=1, delimiter=',')[:,1]
 
-    green_t = np.load(pathBase + "\\530ts.npy")
-    red_t = np.load(pathBase + "\\625ts.npy")
+    # green_t = np.load(pathBase + "\\530ts.npy")
+    # red_t = np.load(pathBase + "\\625ts.npy")
 
-    d_HbO, d_HbR = convert_to_hb(green, red)
+    # d_HbO, d_HbR = convert_to_hb(green, red)
 
-    plt.plot(green_t, d_HbO/np.mean(d_HbO))
-    plt.plot(green_t, d_HbR/np.mean(d_HbR))
-    plt.show()
+    # plt.plot(green_t, d_HbO/np.mean(d_HbO))
+    # plt.plot(green_t, d_HbR/np.mean(d_HbR))
+    # plt.show()
 
-
-# %%
+    pass
