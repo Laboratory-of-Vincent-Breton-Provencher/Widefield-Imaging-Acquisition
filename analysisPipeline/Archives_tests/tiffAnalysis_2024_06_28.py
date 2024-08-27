@@ -6,7 +6,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 import cmcrameri.cm as cmc
 cmap = 'cmc.batlow'
-import analysisFunctions as aF
+import analysisPipeline.Archives_tests.analysisFunctions as aF
 from tqdm import tqdm
 from PIL import Image
 
