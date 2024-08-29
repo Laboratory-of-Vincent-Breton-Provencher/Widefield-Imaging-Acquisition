@@ -86,7 +86,7 @@ void loop() {
     digitalWrite(CAM, LOW);
     FLAG = 0;
   }
-
+ 
   else if (digitalRead(STATUS_ONOFF) == HIGH) {
     if (timeNow - lastBlink > 1000000/FPS) {  // only once every FPS
       if (digitalRead(LED405) == HIGH){ // if LED405 is on
