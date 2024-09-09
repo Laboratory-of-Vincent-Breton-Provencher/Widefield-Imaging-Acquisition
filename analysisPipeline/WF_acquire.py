@@ -196,13 +196,13 @@ def unlimited_acquisition():
 
 
 if __name__ == "__main__":
-    print("- - - Starting Fused Fiber Photometry Software - - -\n\n")
+    print("- - - Starting Wide Field Software - - -\n\n")
     print("List of the active USB ports:")
 
     for port, desc, hwid in sorted(comports()):
         print(f"\t- {port}: {desc}")
 
-    daq_port = input("\n\nSelect the USB port of the FFP DAQ: ")
+    daq_port = input("\n\nSelect the USB port of the WF DAQ: ")
 
     arduino = serial.Serial(
                         port=daq_port,
