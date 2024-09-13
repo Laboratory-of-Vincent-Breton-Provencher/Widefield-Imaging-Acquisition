@@ -291,7 +291,7 @@ def regress_drift(sig:list, time:list, save_path, wl:int=530)-> list:
     return sig_r
 
 
-def prepToCompute(frames:list, wl:int=530, correct_motion=False, filter=False, bin_size=None, regress=False):
+def prepToCompute(frames:list, wl:int=530, correct_motion=False, bin_size=None, regress=False):
     """_summary_
 
     Args:
@@ -311,9 +311,6 @@ def prepToCompute(frames:list, wl:int=530, correct_motion=False, filter=False, b
     if bin_size is not None:
         print("Bining pixels")
         frames = bin_pixels(frames, bin_size=bin_size)
-    if filter:
-        print("Filtering")
-        frames = gaussian_filter(frames, sigma=1)
     if regress:
         print("Normalizing")
         frames = frames/np.mean(frames, axis=0)
@@ -353,7 +350,7 @@ def convertToHb(data_green, data_red):
     return d_HbO, d_HbR
 
 
-def dHb_pipeline(data_path, save_path, correct_motion=True, bin_size=3, filter=True, regress=True):
+def dHb_pipeline(data_path, save_path, correct_motion=True, bin_size=3, filter=False, regress=True):
     """_summary_
 
     Args:
@@ -370,7 +367,7 @@ def dHb_pipeline(data_path, save_path, correct_motion=True, bin_size=3, filter=T
     green = create_npy_stack(data_path + "\\530", data_path, 530, saving=False)
     # green = np.load(data_path + "\\530_rawStack.npy")
     print("Green data loaded")
-    green = prepToCompute(green, wl=530, correct_motion=correct_motion, filter=filter, bin_size=bin_size, regress=regress)
+    green = prepToCompute(green, wl=530, correct_motion=correct_motion, bin_size=bin_size, regress=regress)
     green = np.save(data_path + "\\530preped.npy", green)
     green = None
     print("Green data preped and saved")
@@ -380,7 +377,7 @@ def dHb_pipeline(data_path, save_path, correct_motion=True, bin_size=3, filter=T
     red = create_npy_stack(data_path + "\\625", data_path, 625, saving=False)
     # red = np.load(data_path + "\\625_rawStack.npy")
     print("Red data loaded")
-    red = prepToCompute(red, wl=625, correct_motion=correct_motion, filter=filter, bin_size=bin_size, regress=regress)
+    red = prepToCompute(red, wl=625, correct_motion=correct_motion, bin_size=bin_size, regress=regress)
     red = np.save(data_path + "\\625preped.npy", red)
     red = None
     print("Red data preped and saved")
@@ -396,6 +393,10 @@ def dHb_pipeline(data_path, save_path, correct_motion=True, bin_size=3, filter=T
     d_HbR = resample_pixel_value(d_HbR, 16).astype(np.uint16)
     d_HbT = resample_pixel_value(d_HbT, 16).astype(np.uint16)
     Hb = np.array((d_HbO, d_HbR, d_HbT))
+    # filter if needed
+    if filter:
+        print("Filtering")
+        Hb = gaussian_filter(Hb, sigma=1, axes=(2, 3))
     # save processed data as npy
     np.save(save_path + "\\computedHb.npy", Hb)
     # save as tiff
@@ -414,4 +415,4 @@ if __name__ == "__main__":
     root.withdraw()
     data_path = filedialog.askdirectory()
     save_path = data_path
-    dHb_pipeline(data_path, save_path, filter=False, bin_size=None)
+    dHb_pipeline(data_path, save_path, filter=True, bin_size=None)
