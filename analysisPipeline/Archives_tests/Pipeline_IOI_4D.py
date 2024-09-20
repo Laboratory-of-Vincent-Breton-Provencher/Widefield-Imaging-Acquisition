@@ -197,6 +197,7 @@ def create_npy_stack(folder_path:str, save_path:str,  wl:int, saving=False):
     return _3d_stack
 
 
+
 def motion_correction(frames):
     """Applies motion correction based on a phase cross correlation
 
@@ -350,7 +351,7 @@ def convertToHb(data_green, data_red):
     return d_HbO, d_HbR
 
 
-def dHb_pipeline(data_path, save_path, correct_motion=True, bin_size=3, filter=False, regress=True):
+def dHb_pipeline(data_path, save_path, correct_motion=True, bin_size=3, filter_sigma=2.5, regress=True):
     """_summary_
 
     Args:
@@ -394,12 +395,13 @@ def dHb_pipeline(data_path, save_path, correct_motion=True, bin_size=3, filter=F
     d_HbT = resample_pixel_value(d_HbT, 16).astype(np.uint16)
     Hb = np.array((d_HbO, d_HbR, d_HbT))
     # filter if needed
-    if filter:
+    if filter is not None:
         print("Filtering")
-        Hb = gaussian_filter(Hb, sigma=1, axes=(2, 3))
+        Hb = gaussian_filter(Hb, sigma=filter_sigma, axes=(1))
     # save processed data as npy
     np.save(save_path + "\\computedHb.npy", Hb)
     # save as tiff
+    print("Saving processed Hb")
     data_types = ['HbO', 'HbR', 'HbT']
     for frames, typpe in zip(Hb, data_types):
         try:
@@ -415,4 +417,4 @@ if __name__ == "__main__":
     root.withdraw()
     data_path = filedialog.askdirectory()
     save_path = data_path
-    dHb_pipeline(data_path, save_path, filter=True, bin_size=None)
+    dHb_pipeline(data_path, save_path, bin_size=None)

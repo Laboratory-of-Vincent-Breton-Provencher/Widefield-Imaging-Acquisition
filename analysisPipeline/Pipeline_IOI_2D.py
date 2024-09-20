@@ -4,6 +4,9 @@ from scipy.ndimage import gaussian_filter # median_filter, shift
 from scipy.optimize import curve_fit
 from ioi_epsilon_pathlength_calc import ioi_epsilon_pathlength
 
+from tkinter import filedialog
+from tkinter import *
+
 
 def lowpass_filter2D(sig:list, cutoff:float=1, fs:float=10, order:int=5)->list:
     """lowpass filter easy to use for data
@@ -45,7 +48,7 @@ def regress_drift2D(sig:list, time:list)-> list:
     return sig_r
 
 
-def prepToCompute2D(sig:list, time:list, filter=False, cutoff:float=2, regress=True):
+def prepToCompute2D(sig:list, time:list, filter=False, regress=True):
     """_summary_
 
     Args:
@@ -102,7 +105,7 @@ def convertToHb2D(data_green, data_red):
     return d_HbO, d_HbR
 
 
-def dHb_pipeline2D(data_path, save_path, filter=False, cutoff=2, regress=True):
+def dHb_pipeline(data_path, save_path, filter=False, regress=True):
     """pipeline to compute Hb from raw data. Data must the sorted first, see data_path arg.
 
     Args:
@@ -114,19 +117,19 @@ def dHb_pipeline2D(data_path, save_path, filter=False, cutoff=2, regress=True):
         regress (bool, optional): linear regression to remove LED drift and center data around 1. Defaults to True.
     """
     # process green
-    green = np.loadtxt(data_path + "\\csv\\530.csv", skiprows=1, delimiter=',')[:,1]
+    green = np.loadtxt(data_path + "\\530.csv", skiprows=1, delimiter=',')[:,1]
     green_t = np.load(data_path + "\\530ts.npy")
     print("Green data loaded")
-    green = prepToCompute2D(green, green_t, filter, cutoff, regress)
+    green = prepToCompute2D(green, green_t, filter, regress)
     np.save(data_path + "\\530preped.npy", green)
     green = None
     print("Green data saved")
 
     # process red    
-    red = np.loadtxt(data_path + "\\csv\\625.csv", skiprows=1, delimiter=',')[:,1]
+    red = np.loadtxt(data_path + "\\625.csv", skiprows=1, delimiter=',')[:,1]
     red_t = np.load(data_path + "\\625ts.npy")
     print("Red data loaded")
-    red = prepToCompute2D(red, red_t, filter, cutoff, regress)
+    red = prepToCompute2D(red, red_t, filter, regress)
     np.save(data_path + "\\625preped.npy", red)
     red = None
     print("Red data saved")
@@ -142,12 +145,16 @@ def dHb_pipeline2D(data_path, save_path, filter=False, cutoff=2, regress=True):
     np.save(save_path + "\\computedHb.npy", Hb)
     print("Done")
 
-test = False
-if test:
-    data_path = r"C:\Users\gabri\Desktop\testAnalyse\2024_07_18"
-    save_path = data_path
-    dHb_pipeline2D(data_path, save_path, filter=True, regress=True)
+# test = False
+# if test:
+#     data_path = r"C:\Users\gabri\Desktop\testAnalyse\2024_07_18"
+#     save_path = data_path
+#     dHb_pipeline2D(data_path, save_path, filter=True, regress=True)
 
 
 if __name__ == "__main__":
-    pass
+    root = Tk()
+    root.withdraw()
+    data_path = filedialog.askdirectory()
+    save_path = data_path
+    dHb_pipeline(data_path, save_path, filter=True)
