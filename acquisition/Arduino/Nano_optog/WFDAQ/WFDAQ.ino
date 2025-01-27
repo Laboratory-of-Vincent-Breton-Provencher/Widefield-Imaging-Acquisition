@@ -14,6 +14,7 @@ int in_525 = 5;
 int in_630 = 4;
 int in_785 = 3;
 
+int TTLo = 2;   // ttl feedback for optogenetics
 int TTLs = 0;   // If system is slave
 
 // Flags for light mode (on or off)
@@ -26,6 +27,7 @@ bool FLAG785 = 0;
 // Other flags
 bool FLAG_ONOFF = 0;
 bool FLAG_R = 0;      // Reset flag
+bool FLAG_OPTO = 0;   // optogenetics flag 
 
 // Other values 
 int val = 0; // serial read value, for light selection
@@ -36,12 +38,14 @@ int val470 = 0;
 int val525 = 0;
 int val630 = 0;
 int val785 = 0;
+int valOG = 0;
 
 int prev405 = 0;
 int prev470 = 0;
 int prev525 = 0;
 int prev630 = 0;
 int prev785 = 0;
+int prevOG = 0;
 
 unsigned long currentTime = 0;
 unsigned long previousTime = 0;
@@ -77,6 +81,7 @@ void setup() {
   pinMode(in_785, INPUT);
 
   pinMode(TTLs, INPUT);
+  pinMode(TTLo, IMPUT);
   }
 
 void loop() {
@@ -123,7 +128,6 @@ void loop() {
     else if (val == 'N'){FLAG_ONOFF = 1;}
     else if (val == 'F'){FLAG_ONOFF = 0;}
     else if (val == 'R'){FLAG_R = 1;}
-    }
   
 
     // RESET
@@ -146,10 +150,10 @@ void loop() {
     }
 
     // ON
-    else if (FLAG_ONOFF == 1){
+    else if (FLAG_ONOFF == 1){ 
       digitalWrite(TTLm, HIGH);
-    }      
-
+    }
+    
     // Lights selection
     if (FLAG405 == 1){
       digitalWrite(PINMODE_405, HIGH);
@@ -176,9 +180,11 @@ void loop() {
   val525 = digitalRead(in_525);
   val630 = digitalRead(in_630);
   val785 = digitalRead(in_785);
+  valOG = digitalRead(TTLo);
+  
   valTTLs = digitalRead(TTLs);
 
-  if ((val405 - prev405) > 0 || (val470 - prev470) > 0 || (val525 - prev525) > 0 || (val630 - prev630) > 0 || (val785 - prev785) > 0) { // only print at the onset of every frame
+  if ((val405 - prev405) > 0 || (val470 - prev470) > 0 || (val525 - prev525) > 0 || (val630 - prev630) > 0 || (val785 - prev785) > 0 || (valOG - prevOG) > 0) { // only print at the onset of every frame
     // Serial.print(currentTime);
     Serial.print(paddingLong(currentTime, 7));
     Serial.print("ms - Lights: ");
@@ -187,6 +193,7 @@ void loop() {
     Serial.print(val525);
     Serial.print(val630);
     Serial.print(val785);
+    Serial.print(valOG);
     Serial.print(" - TTLs: ");
     Serial.print(valTTLs);
     Serial.println(padding( FLAG, 4));  
@@ -197,13 +204,14 @@ void loop() {
     }
   }
 
-  // Store pinB and pinV for comparing with next read
+  // Store pins for comparing with next read
   prev405 = val405;
   prev470 = val470;
   prev525 = val525;
   prev630 = val630;
   prev785 = val785;
-} // end void loop
+  prevOG = valOG;
+}  // end void loop
 
 int padding( int number, byte width ) {
   int currentMax = 10;
