@@ -55,7 +55,7 @@ int FLAG = 0; // Increase from 0 to 9 and reset
 
 void setup() {
    // initialize serial communication at 19200 bits per second
-  Serial.begin(19200);
+  Serial.begin(31250);
 
   // OUTPUT PINS
   pinMode(PINMODE_405, OUTPUT);
@@ -81,7 +81,7 @@ void setup() {
   pinMode(in_785, INPUT);
 
   pinMode(TTLs, INPUT);
-  pinMode(TTLo, IMPUT);
+  pinMode(TTLo, INPUT);
   }
 
 void loop() {

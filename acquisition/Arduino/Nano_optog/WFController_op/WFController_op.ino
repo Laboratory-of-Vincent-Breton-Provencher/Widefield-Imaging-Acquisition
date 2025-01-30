@@ -20,7 +20,7 @@ int STATUS_ONOFF = 1;
 
 
 //To control camera and light source
-int FPS = 20; //Hz
+int FPS = 50; //Hz
 bool FLAG_CAM = 0; // for camera trigger
 int camDelay = 2000; //delay between light changes and camera trigger, 2 ms, to avoid bleedthrought between channels (bon terme?)
 int camSig = 1000 + camDelay; // Duration of camera trigger signal (peak), 0.1 ms
@@ -29,9 +29,9 @@ unsigned long timeNow = 0;
 unsigned long lastBlink = micros()-1000000/FPS;     // offset added to make sure LED will turn on on first cycle
 
 // optogenetics variables
-int OptoBlinkTime = 3000;    // duration of one OG blink, in us
-int stimTime = 2 *1000000;     // optogenetics stimulation time in us
-int acquTime = 30 *1000000;    // acquisition time for camera after stim in us
+unsigned long OptoBlinkTime = 3000;    // duration of one OG blink, in us
+unsigned long stimTime = 2 *1000000;     // optogenetics stimulation time in us
+unsigned long acquTime = 30 *1000000;    // acquisition time for camera after stim in us
 
 unsigned long OptoLastBlink = 0;   // last time of a blink in optogenetics stimulation
 unsigned long lastStim = 0;    // time of the last optogenetics stimulation
@@ -104,6 +104,9 @@ void loop() {
  
   else if (digitalRead(STATUS_ONOFF) == HIGH) {
     if (FLAG_ACQU == 1){
+      // Serial.println("test flag acqu");
+      // Serial.println(timeNow - lastStim);
+      // Serial.println(acquTime);
       if (timeNow - lastStim < acquTime){
         // nothing, continues to blinking loop
       }
@@ -111,10 +114,12 @@ void loop() {
         FLAG_ACQU = 0;
         FLAG_STIM = 1;
         lastAcqu = timeNow;
+        // Serial.println(lastAcqu);
       }
     }
 
     else if (FLAG_STIM == 1){
+      // Serial.println("test flag stim");
       if (timeNow - lastAcqu < stimTime){
         // nothing, to blinking loop
       }
@@ -122,6 +127,7 @@ void loop() {
       FLAG_STIM = 0;
       FLAG_ACQU = 1;
       lastStim = timeNow;
+      // Serial.println(lastStim);
       }
     }
 
@@ -129,7 +135,7 @@ void loop() {
     // BLINKING LOOP
     if (timeNow - lastBlink > 1000000/FPS) {  // only once every FPS
       if (digitalRead(LED405) == HIGH){ // if LED405 is on
-        digitalWrite(LED405, LOW); // Turning off LED405 
+        digitalWrite(LED405, LOW); // Turning off LED405
         if (digitalRead(STATUS470) == HIGH){ // Try LEDStatus, when one is high, turn the LED on
           digitalWrite(LED470, HIGH);
         } else if (digitalRead(STATUS525) == HIGH){
@@ -139,7 +145,7 @@ void loop() {
         } else if (digitalRead(STATUS785) == HIGH){
           digitalWrite(LED785, HIGH);
         } else if (FLAG_STIM == 1){
-          digitalWrite(LEDopto, HIGH)
+          digitalWrite(LEDopto, HIGH);
           FLAG_OPTO_ON = 1;
           OptoLastBlink = timeNow;
         } else if (digitalRead(STATUS405) == HIGH){ // if no other LEDStatus is high, beginning LED is turned back on
@@ -156,7 +162,7 @@ void loop() {
         } else if (digitalRead(STATUS785) == HIGH){
           digitalWrite(LED785, HIGH);
         } else if (FLAG_STIM == 1){
-          digitalWrite(LEDopto, HIGH)
+          digitalWrite(LEDopto, HIGH);
           FLAG_OPTO_ON = 1;
           OptoLastBlink = timeNow;
         } else if (digitalRead(STATUS405) == HIGH){ 
@@ -173,7 +179,7 @@ void loop() {
         } else if (digitalRead(STATUS785) == HIGH){
           digitalWrite(LED785, HIGH);
         } else if (FLAG_STIM == 1){
-          digitalWrite(LEDopto, HIGH)
+          digitalWrite(LEDopto, HIGH);
           FLAG_OPTO_ON = 1;
           OptoLastBlink = timeNow;
         } else if (digitalRead(STATUS405) == HIGH){ 
@@ -190,7 +196,7 @@ void loop() {
         if (digitalRead(STATUS785) == HIGH){
           digitalWrite(LED785, HIGH);
         } else if (FLAG_STIM == 1){
-          digitalWrite(LEDopto, HIGH)
+          digitalWrite(LEDopto, HIGH);
           FLAG_OPTO_ON = 1;
           OptoLastBlink = timeNow;
         } else if (digitalRead(STATUS405) == HIGH){ 
@@ -207,7 +213,7 @@ void loop() {
       else if (digitalRead(LED785) == HIGH){ 
         digitalWrite(LED785, LOW);
         if (FLAG_STIM == 1){
-          digitalWrite(LEDopto, HIGH)
+          digitalWrite(LEDopto, HIGH);
           FLAG_OPTO_ON = 1;
           OptoLastBlink = timeNow;
         } else if (digitalRead(STATUS405) == HIGH){ 
