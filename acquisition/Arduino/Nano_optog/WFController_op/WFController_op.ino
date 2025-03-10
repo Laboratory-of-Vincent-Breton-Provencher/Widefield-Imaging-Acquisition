@@ -38,7 +38,7 @@ unsigned long lastStim = 0;    // time of the last optogenetics stimulation
 unsigned long lastAcqu = 0;    // time of the last acquisition in optogenetics
 
 bool FLAG_STIM = 0;   // To know if in a stimulatio or in a acquisition stage
-bool FLAG_ACQU = 0;   // optogenetics flag
+// bool FLAG_ACQU = 1;   // optogenetics flag
 bool FLAG_OPTO_ON = 0;   // To know if within a stimulation, opto trigg is on or not (if in a opto blink cycle or not)
 
 
@@ -98,12 +98,14 @@ void loop() {
     digitalWrite(LEDopto, LOW);
     digitalWrite(CAM, LOW);
     FLAG_CAM = 0;
-    FLAG_ACQU = 1;
+    // FLAG_ACQU = 1;
     FLAG_STIM = 0;
+    lastAcqu = timeNow;
+    lastStim = timeNow;
   }
  
   else if (digitalRead(STATUS_ONOFF) == HIGH) {
-    if (FLAG_ACQU == 1){
+    if (FLAG_STIM == 0){        //if (FLAG_ACQU == 1){      // No optogenetics
       // Serial.println("test flag acqu");
       // Serial.println(timeNow - lastStim);
       // Serial.println(acquTime);
@@ -111,21 +113,21 @@ void loop() {
         // nothing, continues to blinking loop
       }
       else if (timeNow - lastStim > acquTime){
-        FLAG_ACQU = 0;
+        // FLAG_ACQU = 0;
         FLAG_STIM = 1;
         lastAcqu = timeNow;
         // Serial.println(lastAcqu);
       }
     }
 
-    else if (FLAG_STIM == 1){
+    else if (FLAG_STIM == 1){     // Optogenetics signal
       // Serial.println("test flag stim");
       if (timeNow - lastAcqu < stimTime){
         // nothing, to blinking loop
       }
       else if (timeNow - lastAcqu > stimTime){
       FLAG_STIM = 0;
-      FLAG_ACQU = 1;
+      // FLAG_ACQU = 1;
       lastStim = timeNow;
       // Serial.println(lastStim);
       }
