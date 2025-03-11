@@ -1,10 +1,37 @@
 import os
 from tkinter import filedialog, simpledialog
-# from tkinter import *
+from tkinter import *
 import tkinter as tk
 import shutil
 from tqdm import tqdm
+import numpy as np
+from scipy.ndimage import gaussian_filter1d
+import tifffile
 
+#%% Functions
+def find_fname(Path:str, extension:str) -> list:
+    """Retrieves files with a specific extension in a chosen folder
+
+    Args:
+        Path (str):
+        extension (str):
+
+    Returns:
+        list: all the files with the chosen extension (not complete path, only file name)
+    """
+    ls_files = [file for file in os.listdir(Path) if os.path.isfile(os.path.join(Path, file))]
+    fname = [s for s in ls_files if extension in s]
+    # if len(fname) > 1:
+    #     print('There is more than one {} file in {}'.format(contains,os.path.sep+P))
+    #     sys.exit()
+    
+    return fname
+#%%
+
+## Paramètres 
+
+splitChannels = 0
+extractTs = 1
 
 FLAG405 = 1
 FLAG470 = 1
@@ -52,30 +79,78 @@ root = tk.Tk()
 root.withdraw()
 folderPath = filedialog.askdirectory()
 
-# folderPath = r"C:\Users\gabri\Desktop\testAnalyse"
 
 
-print("Sorting data")
 
-filesPaths = [os.path.join(folderPath, file) for file in os.listdir(folderPath)]
-filesPaths.sort(key=lambda x: os.path.getmtime(x))
+if splitChannels:
+    print("--- Split channels ---")
+    print("Sorting data")
 
-
-j = 0
-for flagName, flag in zip(FLAGS.keys(), FLAGS.values()):
-    if flag:
-        try:
-            os.makedirs(os.path.join(folderPath, flagName[4:7]))
-            print("Directory {} was created successfully".format(flagName[4:7]))
-        except OSError as error:
-            print("Directory {} already exists".format(flagName[4:7]))
-        filesChannel = filesPaths[j::sum(FLAGS.values())]
-
-        for file in tqdm(filesChannel):
-            splitPath = os.path.split(file)
-            shutil.move(file, os.path.join(splitPath[0], flagName[4:7], splitPath[1]))
-        j += 1
+    filesPaths = [os.path.join(folderPath, file) for file in os.listdir(folderPath)]
+    filesPaths.sort(key=lambda x: os.path.getmtime(x))
 
 
+    j = 0
+    for flagName, flag in zip(FLAGS.keys(), FLAGS.values()):
+        if flag:
+            try:
+                os.makedirs(os.path.join(folderPath, flagName[4:7]))
+                print("Directory {} was created successfully".format(flagName[4:7]))
+            except OSError as error:
+                print("Directory {} already exists".format(flagName[4:7]))
+            filesChannel = filesPaths[j::sum(FLAGS.values())]
+
+            for file in tqdm(filesChannel):
+                splitPath = os.path.split(file)
+                shutil.move(file, os.path.join(splitPath[0], flagName[4:7], splitPath[1]))
+            j += 1
+
+
+if extractTs:
+    print("--- Extract time stamps ---")
+    for flagName, flag in zip(FLAGS.keys(), FLAGS.values()):
+        if flag:
+            print("    Working on folder{}".format(flagName[4:7]))
+            # Get list of fnames
+            print('Getting file names')
+            ls_f = np.array(find_fname(os.path.join(folderPath, flagName[4:7]),'.tif'))
+
+            # Sort list of fnames
+            print('Sorting files')
+            idx_f = [int(f[10:f.find('.')]) for f in ls_f]
+            idx_sort = np.argsort(idx_f)
+            ls_f = ls_f[idx_sort]
+
+            #%%
+            # Run through the tiff stack to extract time stamps and ttl
+            print('Extracting timestamps')
+            ts = []
+            for f in tqdm(ls_f):
+                # print('Extracting timestamps for {}'.format(f))
+                p = os.path.join(folderPath, flagName[4:7],f)
+
+                with tifffile.TiffFile(p) as tif:
+                    # Iterate over pages
+                    for i, page in enumerate(tif.pages):
+                
+                        # Extract ttl for this frame (WORK IN PROGRESS)
+                        x = page.description
+                        i0 = x.find('bofTime')
+                        a = x[i0:].find('=')
+                        b = x[i0:].find('us')
+                        ts.append(float(x[i0+a+1:i0+b]))
+
+            # convert to sec
+            ts = np.array(ts) * 10**-6
+            ts -= ts[0]
+            # delta_t = np.array(delta_t) * 10**-12
+
+            # print(ts)
+            # Save time stamps
+            np.save(os.path.join(folderPath, flagName[4:7]) + 'ts.npy',ts)
+            print('Timestamps file was created for folder {}'.format(flagName))
+
+
+#%% if GUI
 # if __name__ == '__main__':
 #     window.mainloop()
