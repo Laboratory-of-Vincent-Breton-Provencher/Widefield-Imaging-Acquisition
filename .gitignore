@@ -3,7 +3,6 @@ __pycache__
 .github
 .vs/
 .DS_Store
-data
 WFenv/
-old/
-analysisPipeline/figures/
+Figures/
+Acquisition/old
