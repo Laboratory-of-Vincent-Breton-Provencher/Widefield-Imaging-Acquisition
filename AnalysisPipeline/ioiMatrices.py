@@ -19,7 +19,7 @@ def ioi_path_length_factor(lambda1, lambda2, npoints):
     pathlengths: 1darray
         Pathlength values in mm between lambda1 and lambda2
     """
-    with open(r"C:\Users\gabri\Documents\Université\Maitrise\Projet\Widefield-Imaging-Acquisition\analysisPipeline\Ma_values.txt", 'r') as csvfile:
+    with open(r"AnalysisPipeline\reference\Ma_values.txt", 'r') as csvfile:
         reader = csv.reader(csvfile, delimiter=' ')
         ma_values = []
         for row in reader:
@@ -52,7 +52,7 @@ def ioi_get_extinctions(lambda1, lambda2, npoints):
     ext_HbO/HbR: 1darrays
         Extinction values for HbO and HbR in 1/(cm*M) between lambda1 and lambda2
     """
-    with open(r"C:\Users\gabri\Documents\Université\Maitrise\Projet\Widefield-Imaging-Acquisition\analysisPipeline\Prahl_values.txt", 'r') as csvfile:
+    with open(r"AnalysisPipeline\reference\Prahl_values.txt", 'r') as csvfile:
         reader = csv.reader(csvfile, delimiter=' ')
         prahl_values = []
         for row in reader:
@@ -87,7 +87,7 @@ def ioi_epsilon_pathlength(lambda1, lambda2, npoints, baseline_hbt, baseline_hbo
         2d matrix of the epsilon*pathlength values for both imaging wavelengths (rows) and chromophores (columns) in 1/M.
         This matrix is used to solve the modified Beer-Lambert equation for HbO and HbR concentration changes.
     """
-    os.chdir(r"C:\Users\gabri\Documents\Université\Maitrise\Projet\Widefield-Imaging-Acquisition")
+    # os.chdir(r"C:\Users\gabri\Documents\Université\Maitrise\Projet\Widefield-Imaging-Acquisition")
     wl = np.linspace(lambda1, lambda2, npoints)
     # c_camera
     QE_moment = np.loadtxt(r"analysisPipeline\specs sys optique\QE_moment_5px.csv", delimiter=';')

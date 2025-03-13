@@ -5,7 +5,6 @@ import tkinter as tk
 import shutil
 from tqdm import tqdm
 import numpy as np
-from scipy.ndimage import gaussian_filter1d
 import tifffile
 
 #%% Functions
@@ -28,16 +27,17 @@ def find_fname(Path:str, extension:str) -> list:
     return fname
 #%%
 
-## Paramètres 
+## Paramètres: quoi faire et avec quels canaux
 
 splitChannels = 0
 extractTs = 1
 
-FLAG405 = 1
-FLAG470 = 1
-FLAG530 = 1
-FLAG625 = 1
+FLAG405 = 0
+FLAG470 = 0
+FLAG530 = 0
+FLAG625 = 0
 FLAG785 = 1
+
 
 FLAGS = {"FLAG405":FLAG405, "FLAG470":FLAG470, "FLAG530":FLAG530, "FLAG625":FLAG625, "FLAG785":FLAG785}
 
@@ -110,7 +110,7 @@ if extractTs:
     print("--- Extract time stamps ---")
     for flagName, flag in zip(FLAGS.keys(), FLAGS.values()):
         if flag:
-            print("    Working on folder{}".format(flagName[4:7]))
+            print("    Working on folder {}".format(flagName[4:7]))
             # Get list of fnames
             print('Getting file names')
             ls_f = np.array(find_fname(os.path.join(folderPath, flagName[4:7]),'.tif'))
@@ -148,7 +148,7 @@ if extractTs:
             # print(ts)
             # Save time stamps
             np.save(os.path.join(folderPath, flagName[4:7]) + 'ts.npy',ts)
-            print('Timestamps file was created for folder {}'.format(flagName))
+            print('Timestamps file was created for folder {}'.format(flagName[4:7]))
 
 
 #%% if GUI
