@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-
+## To adapt from Antoine Daigle fiber photometry 
 
 def test_acquisition():
     print("Stop this test by closing the graph and type KeyboardInterrupt (ctrl-C)...")
