@@ -90,15 +90,15 @@ def ioi_epsilon_pathlength(lambda1, lambda2, npoints, baseline_hbt, baseline_hbo
     # os.chdir(r"C:\Users\gabri\Documents\Université\Maitrise\Projet\Widefield-Imaging-Acquisition")
     wl = np.linspace(lambda1, lambda2, npoints)
     # c_camera
-    QE_moment = np.loadtxt(r"analysisPipeline\specs sys optique\QE_moment_5px.csv", delimiter=';')
+    QE_moment = np.loadtxt(r"AnalysisPipeline\\specs sys optique\QE_moment_5px.csv", delimiter=';')
     p = np.poly1d(np.polyfit(QE_moment[:,0], QE_moment[:,1], 10))
     c_camera = p(wl)/np.max(p(wl))
     QE_moment, p = None, None
     # c_led
-    FBH530 = np.loadtxt(r"analysisPipeline\specs sys optique\FBH530-10.csv", skiprows=1, usecols=(0, 2), delimiter=';')
+    FBH530 = np.loadtxt(r"AnalysisPipeline\\specs sys optique\FBH530-10.csv", skiprows=1, usecols=(0, 2), delimiter=';')
     f = interp1d(FBH530[:,0], FBH530[:,1])
     c_FBH530 = f(wl)/np.max(f(wl))
-    FBH630 = np.loadtxt(r"analysisPipeline\specs sys optique\FBH630-10.csv", skiprows=1, usecols=(0, 2), delimiter=';')
+    FBH630 = np.loadtxt(r"AnalysisPipeline\\specs sys optique\FBH630-10.csv", skiprows=1, usecols=(0, 2), delimiter=';')
     f = interp1d(FBH630[:,0], FBH630[:,1])
     c_FBH630 = f(wl)/np.max(f(wl))
     c_led = np.array([c_FBH530, c_FBH630])

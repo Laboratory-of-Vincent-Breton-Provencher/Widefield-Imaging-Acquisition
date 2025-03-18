@@ -3,8 +3,8 @@ from tkinter import filedialog
 from tkinter import *
 import numpy as np
 from scipy.ndimage import gaussian_filter
-from AnalysisPipeline.ioiMatrices import ioi_epsilon_pathlength
-from AnalysisPipeline.prepIOIdata import create_npy_stack, prepToCompute, resample_pixel_value, save_as_tiff
+from ioiMatrices import ioi_epsilon_pathlength
+from prepData import create_npy_stack, prepToCompute, resample_pixel_value, save_as_tiff
 
 
 def convertToHb(data_green:list, data_red:list):
@@ -40,7 +40,7 @@ def convertToHb(data_green:list, data_red:list):
     return d_HbO, d_HbR
 
 
-def dHb_pipeline(data_path:str, save_path:str, preprocess:bool=True, correct_motion:bool=True, bin_size:int=3, regress:bool=True, filter_sigma:float=2.5):
+def dHb_pipeline(data_path:str, save_path:str, preprocess:bool=True, nFrames:int=None,  correct_motion:bool=True, bin_size:int=3, regress:bool=True, filter_sigma:float=2.5):
     """ Analysis pipeline to process raw frames into Hb data. Saves processed tiff files as well as
         the numpy 4D array containing the 3 types of data (HbO, HbR, HbT).
 
@@ -48,6 +48,7 @@ def dHb_pipeline(data_path:str, save_path:str, preprocess:bool=True, correct_mot
         data_path (str): path of the raw data
         save_path (str): path of where to save processed Hb data
         preprocess (bool, optional): Use False if preprocessed file already saved. Defaults to True.
+        nFrames (int, optional): number of frames to analyse. If None, analyze all frames
         correct_motion (bool, optional): Corrects motion in images with phase cross-correlation. Defaults to True.
         bin_size (int, optional): bins data to make it smaller. Defaults to 3.
         regress (bool, optional): normalizes the data around 1. Defaults to True.
@@ -56,21 +57,21 @@ def dHb_pipeline(data_path:str, save_path:str, preprocess:bool=True, correct_mot
     if preprocess:
         # process green
         print("Loading green data")
-        green = create_npy_stack(data_path + "\\530", data_path, 530, saving=False)
+        green = create_npy_stack(data_path + "\\530", data_path, 530, saving=False, nFrames=nFrames)
         # green = np.load(data_path + "\\530_rawStack.npy")
         print("Green data loaded")
         green = prepToCompute(green, correct_motion=correct_motion, bin_size=bin_size, regress=regress)
-        green = np.save(data_path + "\\530_preprocessed.npy", green)
+        np.save(data_path + "\\530_preprocessed.npy", green)
         green = None
         print("Green data preprocessed and saved")
 
         # process red
         print("Loading red data")
-        red = create_npy_stack(data_path + "\\625", data_path, 625, saving=False)
+        red = create_npy_stack(data_path + "\\625", data_path, 625, saving=False, nFrames=nFrames)
         # red = np.load(data_path + "\\625_rawStack.npy")
         print("Red data loaded")
         red = prepToCompute(red, correct_motion=correct_motion, bin_size=bin_size, regress=regress)
-        red = np.save(data_path + "\\625_preprocessed.npy", red)
+        np.save(data_path + "\\625_preprocessed.npy", red)
         red = None
         print("Red data preprocessed and saved")
 
@@ -107,5 +108,8 @@ if __name__ == "__main__":
     root = Tk()
     root.withdraw()
     data_path = filedialog.askdirectory()
+
     save_path = data_path
-    dHb_pipeline(data_path, save_path, bin_size=None)
+    nFrames = 150
+    dHb_pipeline(data_path, save_path, preprocess=False, bin_size=None, nFrames=nFrames)
+

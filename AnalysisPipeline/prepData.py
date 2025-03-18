@@ -68,28 +68,31 @@ def resample_pixel_value(data, bits):
     return (plage * (data - np.min(data))/(np.max(data - np.min(data))))
 
 
-def save_as_tiff(frames, Hb, save_path):
+def save_as_tiff(frames, data_type, save_path):
     """Helps save tiff images more easily
 
     Args:
         frames (array): 3D array of one type of data, ex HbO, HbR, or HbT
-        Hb (str): type of data, either HbO, HbR, or HbT
+        data_type (str): type of data, for file prefix
         save_path (str): folder to save data
     """
     for idx, frame in tqdm(enumerate(frames)):
         im = Image.fromarray(frame, mode='I;16')
-        im.save(save_path + "\\{}.tiff".format(Hb + str(idx)), "TIFF")
+        im.save(save_path + "\\{}.tiff".format(data_type + str(idx)), "TIFF")
 
 
-def create_npy_stack(folder_path:str, save_path:str,  wl:int, saving=False):
+def create_npy_stack(folder_path:str, save_path:str,  wl:int, saving=False, nFrames:int=None):
     """creates a 3D npy stack of raw tiff images
 
     Args:
         folder_path (str): folder containing tiff frames
         save_path (str): folder to save npy stack
         wl (int): wavelength for saved file name
+        nFrames (int, optional): number of frames to analyse. If None, analyze all frames
     """
     files = identify_files(folder_path, "tif")
+    if nFrames is not None:
+        files = files[:nFrames]
     # files=files[:250]
     for idx, file in tqdm(enumerate(files)):
         # frame = tff.TiffFile(folder_path+"\\"+file).asarray()
@@ -116,7 +119,7 @@ def motion_correction(frames):
         _type_: 3D array of frames after correction
     """
     fixed_frame = frames[0,:,:]
-    motion_corrected = np.zeros((frames.shape), dtype=np.uint16)
+    motion_corrected = np.zeros((frames.shape), dtype=np.float32)
     for idx, frame in tqdm(enumerate(frames)):
         if idx == 0:
             motion_corrected[0,:,:] = frame
