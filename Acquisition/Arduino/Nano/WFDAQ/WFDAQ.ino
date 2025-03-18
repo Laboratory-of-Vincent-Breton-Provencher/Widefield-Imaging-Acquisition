@@ -167,9 +167,7 @@ void loop() {
       digitalWrite(PINMODE_785, HIGH);
     } else {digitalWrite(PINMODE_785, LOW);}
 
-  } // end serial read instructions
   
-
   // Serial print log
   val405 = digitalRead(in_405);
   val470 = digitalRead(in_470);

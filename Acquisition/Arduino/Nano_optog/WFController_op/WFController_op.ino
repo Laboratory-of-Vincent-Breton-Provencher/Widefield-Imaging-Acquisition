@@ -22,7 +22,7 @@ int STATUS_ONOFF = 1;
 //To control camera and light source
 int FPS = 50; //Hz
 bool FLAG_CAM = 0; // for camera trigger
-int camDelay = 2000; //delay between light changes and camera trigger, 2 ms, to avoid bleedthrought between channels (bon terme?)
+int camDelay = 8000; //delay between light changes and camera trigger, 8 ms, to avoid contamination between channels
 int camSig = 1000 + camDelay; // Duration of camera trigger signal (peak), 0.1 ms
 
 unsigned long timeNow = 0;
