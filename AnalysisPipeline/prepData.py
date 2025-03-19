@@ -81,7 +81,48 @@ def save_as_tiff(frames, data_type, save_path):
         im.save(save_path + "\\{}.tiff".format(data_type + str(idx)), "TIFF")
 
 
-def create_npy_stack(folder_path:str, save_path:str,  wl:int, saving=False, nFrames:int=None):
+def create_list_trials(data_path:str, wl:int, event_times:list, Ns_bef:int=3, Ns_aft:int=10, skip_last:bool=False): 
+    """_summary_
+
+    Args:
+        data_path (str): _description_
+        wl (int): _description_
+        event_times (list): _description_
+        Ns_bef (int, optional): _description_. Defaults to 3.
+        Ns_aft (int, optional): _description_. Defaults to 10.
+        skip_last (bool, optional): skips last trial if not enough time after. Defaults to False
+
+    Returns:
+        list: 2 dimensional list that contains the file paths to the frames of every trial
+    """
+
+    files_list = identify_files(data_path + "\\{}".format(wl), ".tif")
+    frames_timestamps = np.load(data_path + "\\{}ts.npy".format(wl))
+    AP_idx = []
+    for ti in event_times:
+        AP_idx.append(np.argmin(np.absolute(frames_timestamps-ti)))
+
+    if skip_last:
+        AP_idx = AP_idx[:-1]
+
+    Nf_bef = Ns_bef*10
+    Nf_aft = Ns_aft*10
+
+    sorted_frames_idx = []
+    for idx in AP_idx:
+        trial_idx = [idx-Nf_bef, idx+Nf_aft]
+        sorted_frames_idx.append(trial_idx)
+
+    files_by_trial = []
+    for idx, trial_idx in enumerate(sorted_frames_idx):
+        idx_inf = trial_idx[0]
+        idx_sup = trial_idx[1]
+        files_by_trial.append(files_list[idx_inf:idx_sup])
+
+    return files_by_trial
+
+
+def create_npy_stack(folder_path:str, save_path:str,  wl:int, saving=False, nFrames:int=None, cutAroundEvent=None):
     """creates a 3D npy stack of raw tiff images
 
     Args:
@@ -90,7 +131,13 @@ def create_npy_stack(folder_path:str, save_path:str,  wl:int, saving=False, nFra
         wl (int): wavelength for saved file name
         nFrames (int, optional): number of frames to analyse. If None, analyze all frames
     """
-    files = identify_files(folder_path, "tif")
+
+    if cutAroundEvent is not None:
+        files = cutAroundEvent
+    
+    else:
+        files = identify_files(folder_path, "tif")
+
     if nFrames is not None:
         files = files[:nFrames]
     # files=files[:250]

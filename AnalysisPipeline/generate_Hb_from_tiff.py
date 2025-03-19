@@ -4,7 +4,7 @@ from tkinter import *
 import numpy as np
 from scipy.ndimage import gaussian_filter
 from ioiMatrices import ioi_epsilon_pathlength
-from prepData import create_npy_stack, prepToCompute, resample_pixel_value, save_as_tiff
+from prepData import create_npy_stack, prepToCompute, resample_pixel_value, save_as_tiff, create_list_trials
 
 
 def convertToHb(data_green:list, data_red:list):
@@ -40,7 +40,7 @@ def convertToHb(data_green:list, data_red:list):
     return d_HbO, d_HbR
 
 
-def dHb_pipeline(data_path:str, save_path:str, preprocess:bool=True, nFrames:int=None,  correct_motion:bool=True, bin_size:int=3, regress:bool=True, filter_sigma:float=2.5):
+def dHb_pipeline(data_path:str, save_path:str, event_timestamps:list=None, preprocess:bool=True, nFrames:int=None,  correct_motion:bool=True, bin_size:int=2, regress:bool=True, filter_sigma:float=2.5):
     """ Analysis pipeline to process raw frames into Hb data. Saves processed tiff files as well as
         the numpy 4D array containing the 3 types of data (HbO, HbR, HbT).
 
@@ -50,59 +50,188 @@ def dHb_pipeline(data_path:str, save_path:str, preprocess:bool=True, nFrames:int
         preprocess (bool, optional): Use False if preprocessed file already saved. Defaults to True.
         nFrames (int, optional): number of frames to analyse. If None, analyze all frames
         correct_motion (bool, optional): Corrects motion in images with phase cross-correlation. Defaults to True.
-        bin_size (int, optional): bins data to make it smaller. Defaults to 3.
+        bin_size (int, optional): bins data to make it smaller. Defaults to 2.
         regress (bool, optional): normalizes the data around 1. Defaults to True.
         filter_sigma (float, optional): gaussian filter. None means no filter, otherwise specify sigma. Defaults to 2.5.
     """
-    if preprocess:
-        # process green
-        print("Loading green data")
-        green = create_npy_stack(data_path + "\\530", data_path, 530, saving=False, nFrames=nFrames)
-        # green = np.load(data_path + "\\530_rawStack.npy")
-        print("Green data loaded")
-        green = prepToCompute(green, correct_motion=correct_motion, bin_size=bin_size, regress=regress)
-        np.save(data_path + "\\530_preprocessed.npy", green)
-        green = None
-        print("Green data preprocessed and saved")
+    if event_timestamps is None:
+        print("Analysis not by trial")
+        if preprocess:
+            # process green
+            print("Loading green data")
+            green = create_npy_stack(data_path + "\\530", data_path, 530, saving=False, nFrames=nFrames)
+            # green = np.load(data_path + "\\530_rawStack.npy")
+            print("Green data loaded")
+            green = prepToCompute(green, correct_motion=correct_motion, bin_size=bin_size, regress=regress)
+            np.save(data_path + "\\530_preprocessed.npy", green)
+            green = None
+            print("Green data preprocessed and saved")
 
-        # process red
-        print("Loading red data")
-        red = create_npy_stack(data_path + "\\625", data_path, 625, saving=False, nFrames=nFrames)
-        # red = np.load(data_path + "\\625_rawStack.npy")
-        print("Red data loaded")
-        red = prepToCompute(red, correct_motion=correct_motion, bin_size=bin_size, regress=regress)
-        np.save(data_path + "\\625_preprocessed.npy", red)
-        red = None
-        print("Red data preprocessed and saved")
+            # process red
+            print("Loading red data")
+            red = create_npy_stack(data_path + "\\625", data_path, 625, saving=False, nFrames=nFrames)
+            # red = np.load(data_path + "\\625_rawStack.npy")
+            print("Red data loaded")
+            red = prepToCompute(red, correct_motion=correct_motion, bin_size=bin_size, regress=regress)
+            np.save(data_path + "\\625_preprocessed.npy", red)
+            red = None
+            print("Red data preprocessed and saved")
 
-    # convert to hb
-    print("Converting to dHb")
-    green = np.load(data_path + "\\530_preprocessed.npy")
-    red = np.load(data_path + "\\625_preprocessed.npy")
-    d_HbO, d_HbR = convertToHb(green, red)
-    d_HbT = d_HbO+d_HbR
-    # resample pixel values
-    d_HbO = resample_pixel_value(d_HbO, 16).astype(np.uint16)
-    d_HbR = resample_pixel_value(d_HbR, 16).astype(np.uint16)
-    d_HbT = resample_pixel_value(d_HbT, 16).astype(np.uint16)
-    Hb = np.array((d_HbO, d_HbR, d_HbT))
-    # filter if needed
-    if filter_sigma is not None:
-        print("Filtering")
-        Hb = gaussian_filter(Hb, sigma=filter_sigma, axes=(1))
-    # save processed data as npy
-    np.save(save_path + "\\computedHb.npy", Hb)
-    # save as tiff
-    print("Saving processed Hb")
-    data_types = ['HbO', 'HbR', 'HbT']
-    for frames, typpe in zip(Hb, data_types):
-        try:
-            os.mkdir(save_path + "\\"  + typpe)
-        except FileExistsError:
-            print("Folder already created")
-        save_as_tiff(frames, typpe, save_path + "\\" + typpe)
+        # convert to hb
+        print("Converting to dHb")
+        green = np.load(data_path + "\\530_preprocessed.npy")
+        red = np.load(data_path + "\\625_preprocessed.npy")
+        d_HbO, d_HbR = convertToHb(green, red)
+        d_HbT = d_HbO+d_HbR
+        # resample pixel values
+        d_HbO = resample_pixel_value(d_HbO, 16).astype(np.uint16)
+        d_HbR = resample_pixel_value(d_HbR, 16).astype(np.uint16)
+        d_HbT = resample_pixel_value(d_HbT, 16).astype(np.uint16)
+        Hb = np.array((d_HbO, d_HbR, d_HbT))
+        # filter if needed
+        if filter_sigma is not None:
+            print("Filtering")
+            Hb = gaussian_filter(Hb, sigma=filter_sigma, axes=(1))
+        # save processed data as npy
+        np.save(save_path + "\\computedHb.npy", Hb)
+        # save as tiff
+        print("Saving processed Hb")
+        data_types = ['HbO', 'HbR', 'HbT']
+        for frames, typpe in zip(Hb, data_types):
+            try:
+                os.mkdir(save_path + "\\"  + typpe)
+            except FileExistsError:
+                print("Folder already created")
+            save_as_tiff(frames, typpe, save_path + "\\" + typpe)
 
-    print("Done")
+        print("Done")
+
+    else:
+        print("Analysis by trial")
+        files_by_trial_g = create_list_trials(data_path, 530, event_timestamps)
+        files_by_trial_r = create_list_trials(data_path, 625, event_timestamps)
+
+        for trial_idx in range(len(files_by_trial_g)):       
+            if preprocess:
+                # process green
+                print("Loading green data")
+                green = create_npy_stack(data_path + "\\530", data_path, 530, saving=False, cutAroundEvent=files_by_trial_g[trial_idx])
+                # green = np.load(data_path + "\\530_rawStack.npy")
+                print("Green data loaded")
+                green = prepToCompute(green, correct_motion=correct_motion, bin_size=bin_size, regress=regress)
+                np.save(data_path + "\\530_preprocessed.npy", green)
+                green = None
+                print("Green data preprocessed and saved")
+
+                # process red
+                print("Loading red data")
+                red = create_npy_stack(data_path + "\\625", data_path, 625, saving=False, cutAroundEvent=files_by_trial_r[trial_idx])
+                # red = np.load(data_path + "\\625_rawStack.npy")
+                print("Red data loaded")
+                red = prepToCompute(red, correct_motion=correct_motion, bin_size=bin_size, regress=regress)
+                np.save(data_path + "\\625_preprocessed.npy", red)
+                red = None
+                print("Red data preprocessed and saved")
+
+            # convert to hb
+            print("Converting to dHb")
+            green = np.load(data_path + "\\530_preprocessed.npy")
+            red = np.load(data_path + "\\625_preprocessed.npy")
+            d_HbO, d_HbR = convertToHb(green, red)
+            d_HbT = d_HbO+d_HbR
+            # resample pixel values
+            d_HbO = resample_pixel_value(d_HbO, 16).astype(np.uint16)
+            d_HbR = resample_pixel_value(d_HbR, 16).astype(np.uint16)
+            d_HbT = resample_pixel_value(d_HbT, 16).astype(np.uint16)
+            Hb = np.array((d_HbO, d_HbR, d_HbT))
+            # filter if needed
+            if filter_sigma is not None:
+                print("Filtering")
+                Hb = gaussian_filter(Hb, sigma=filter_sigma, axes=(1))
+            # save processed data as npy
+            np.save(save_path + "\\computedHb_trial{}.npy".format(trial_idx), Hb)
+            # save as tiff
+            print("Saving processed Hb")
+            data_types = ['HbO', 'HbR', 'HbT']
+            for frames, typpe in zip(Hb, data_types):
+                try:
+                    os.mkdir(save_path + "\\"  + typpe)
+                except FileExistsError:
+                    print("Folder already created")
+                save_as_tiff(frames, typpe + "_trial{}_".format(trial_idx+1), save_path + "\\" + typpe)
+
+            print("Done with trial {}".format(trial_idx))
+
+        print("Done for real now")
+
+
+#%% before trial cutting
+# def dHb_pipeline(data_path:str, save_path:str, preprocess:bool=True, nFrames:int=None,  correct_motion:bool=True, bin_size:int=3, regress:bool=True, filter_sigma:float=2.5):
+#     """ Analysis pipeline to process raw frames into Hb data. Saves processed tiff files as well as
+#         the numpy 4D array containing the 3 types of data (HbO, HbR, HbT).
+
+#     Args:
+#         data_path (str): path of the raw data
+#         save_path (str): path of where to save processed Hb data
+#         preprocess (bool, optional): Use False if preprocessed file already saved. Defaults to True.
+#         nFrames (int, optional): number of frames to analyse. If None, analyze all frames
+#         correct_motion (bool, optional): Corrects motion in images with phase cross-correlation. Defaults to True.
+#         bin_size (int, optional): bins data to make it smaller. Defaults to 3.
+#         regress (bool, optional): normalizes the data around 1. Defaults to True.
+#         filter_sigma (float, optional): gaussian filter. None means no filter, otherwise specify sigma. Defaults to 2.5.
+#     """
+#     if preprocess:
+#         # process green
+#         print("Loading green data")
+#         green = create_npy_stack(data_path + "\\530", data_path, 530, saving=False, nFrames=nFrames)
+#         # green = np.load(data_path + "\\530_rawStack.npy")
+#         print("Green data loaded")
+#         green = prepToCompute(green, correct_motion=correct_motion, bin_size=bin_size, regress=regress)
+#         np.save(data_path + "\\530_preprocessed.npy", green)
+#         green = None
+#         print("Green data preprocessed and saved")
+
+#         # process red
+#         print("Loading red data")
+#         red = create_npy_stack(data_path + "\\625", data_path, 625, saving=False, nFrames=nFrames)
+#         # red = np.load(data_path + "\\625_rawStack.npy")
+#         print("Red data loaded")
+#         red = prepToCompute(red, correct_motion=correct_motion, bin_size=bin_size, regress=regress)
+#         np.save(data_path + "\\625_preprocessed.npy", red)
+#         red = None
+#         print("Red data preprocessed and saved")
+
+#     # convert to hb
+#     print("Converting to dHb")
+#     green = np.load(data_path + "\\530_preprocessed.npy")
+#     red = np.load(data_path + "\\625_preprocessed.npy")
+#     d_HbO, d_HbR = convertToHb(green, red)
+#     d_HbT = d_HbO+d_HbR
+#     # resample pixel values
+#     d_HbO = resample_pixel_value(d_HbO, 16).astype(np.uint16)
+#     d_HbR = resample_pixel_value(d_HbR, 16).astype(np.uint16)
+#     d_HbT = resample_pixel_value(d_HbT, 16).astype(np.uint16)
+#     Hb = np.array((d_HbO, d_HbR, d_HbT))
+#     # filter if needed
+#     if filter_sigma is not None:
+#         print("Filtering")
+#         Hb = gaussian_filter(Hb, sigma=filter_sigma, axes=(1))
+#     # save processed data as npy
+#     np.save(save_path + "\\computedHb.npy", Hb)
+#     # save as tiff
+#     print("Saving processed Hb")
+#     data_types = ['HbO', 'HbR', 'HbT']
+#     for frames, typpe in zip(Hb, data_types):
+#         try:
+#             os.mkdir(save_path + "\\"  + typpe)
+#         except FileExistsError:
+#             print("Folder already created")
+#         save_as_tiff(frames, typpe, save_path + "\\" + typpe)
+
+#     print("Done")
+#%%
+
+
 
 if __name__ == "__main__":
     root = Tk()
@@ -111,5 +240,16 @@ if __name__ == "__main__":
 
     save_path = data_path
     nFrames = 150
-    dHb_pipeline(data_path, save_path, preprocess=False, bin_size=None, nFrames=nFrames)
+    AP_times = np.array([  12.01,   35.2 ,   46.51])
+    # ,   74.12,   91.14,  103.63,  114.48,
+    # 132.14,  142.77,  169.61,  182.33,  197.83,  209.56,  223.5 ,
+    # 239.35,  252.31,  263.77,  279.97,  297.53,  310.62,  323.38,
+    # 335.92,  365.67,  383.93,  402.83,  417.51,  430.48,  440.9 ,
+    # 456.7 ,  468.25,  480.64])
+
+    # Analysis not by trial
+    # dHb_pipeline(data_path, save_path, preprocess=False, bin_size=None, nFrames=nFrames)
+
+    # Analysis by trial
+    dHb_pipeline(data_path, save_path, AP_times, bin_size=None)
 
