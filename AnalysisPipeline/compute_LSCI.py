@@ -78,6 +78,7 @@ def LSCI_pipeline(data_path:str, save_path:str, preprocess:bool=True, nFrames:in
 
     print("Done")
 
+
 if __name__ == "__main__":
     root = Tk()
     root.withdraw()
