@@ -54,6 +54,7 @@ def dHb_pipeline(data_path:str, save_path:str, event_timestamps:list=None, prepr
         regress (bool, optional): normalizes the data around 1. Defaults to True.
         filter_sigma (float, optional): gaussian filter. None means no filter, otherwise specify sigma. Defaults to 2.5.
     """
+    # Analyse du data complet sans trier essais. Attention à ne pas buster la ram (limiter avec nFrames)
     if event_timestamps is None:
         print("Analysis not by trial")
         if preprocess:
@@ -106,6 +107,7 @@ def dHb_pipeline(data_path:str, save_path:str, event_timestamps:list=None, prepr
 
         print("Done")
 
+    # Analyse des essais un à la fois (air puffs, optogen.) plus long, mais risque moins de buster la ram
     else:
         print("Analysis by trial")
         files_by_trial_g = create_list_trials(data_path, 530, event_timestamps)
@@ -234,11 +236,11 @@ def dHb_pipeline(data_path:str, save_path:str, event_timestamps:list=None, prepr
 
 
 if __name__ == "__main__":
-    root = Tk()
-    root.withdraw()
-    data_path = filedialog.askdirectory()
+    # root = Tk()
+    # root.withdraw()
+    # data_path = filedialog.askdirectory()
 
-    save_path = data_path
+    # save_path = data_path
     nFrames = 150
     AP_times = np.array([  12.01,   35.2 ,   46.51])
     # ,   74.12,   91.14,  103.63,  114.48,
@@ -246,10 +248,12 @@ if __name__ == "__main__":
     # 239.35,  252.31,  263.77,  279.97,  297.53,  310.62,  323.38,
     # 335.92,  365.67,  383.93,  402.83,  417.51,  430.48,  440.9 ,
     # 456.7 ,  468.25,  480.64])
+    opto_stims = np.arange(30, 1000, 32)
+    print(opto_stims)
 
     # Analysis not by trial
     # dHb_pipeline(data_path, save_path, preprocess=False, bin_size=None, nFrames=nFrames)
 
     # Analysis by trial
-    dHb_pipeline(data_path, save_path, AP_times, bin_size=None)
+    # dHb_pipeline(data_path, save_path, AP_times, bin_size=None)
 

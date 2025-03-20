@@ -82,14 +82,14 @@ def save_as_tiff(frames, data_type, save_path):
 
 
 def create_list_trials(data_path:str, wl:int, event_times:list, Ns_bef:int=3, Ns_aft:int=10, skip_last:bool=False): 
-    """_summary_
+    """ Creates a list that contains files cropped and sorted into trials
 
     Args:
-        data_path (str): _description_
-        wl (int): _description_
+        data_path (str): folder path for the try, not directlt the channel, the folder that contains all the channels
+        wl (int): wl, ideally the name of the folder that contains the files to analyze
         event_times (list): _description_
-        Ns_bef (int, optional): _description_. Defaults to 3.
-        Ns_aft (int, optional): _description_. Defaults to 10.
+        Ns_bef (int, optional): number of seconds to keep before event. Defaults to 3.
+        Ns_aft (int, optional): number of seconds to keep after event. Defaults to 10.
         skip_last (bool, optional): skips last trial if not enough time after. Defaults to False
 
     Returns:
@@ -98,6 +98,11 @@ def create_list_trials(data_path:str, wl:int, event_times:list, Ns_bef:int=3, Ns
 
     files_list = identify_files(data_path + "\\{}".format(wl), ".tif")
     frames_timestamps = np.load(data_path + "\\{}ts.npy".format(wl))
+    n_frames = len(files_list)
+    max_time = frames_timestamps[n_frames]
+    last_event = np.argmin(np.abs((event_times - max_time)))
+    event_times = event_times[0:last_event+1]
+
     AP_idx = []
     for ti in event_times:
         AP_idx.append(np.argmin(np.absolute(frames_timestamps-ti)))
@@ -251,3 +256,21 @@ def prepToCompute(frames:list, correct_motion:bool=False, bin_size:int=None, reg
         frames = frames/np.mean(frames, axis=0)
     
     return frames
+
+
+if __name__ == "__main__":
+    from tkinter import filedialog
+    from tkinter import *
+
+    root = Tk()
+    root.withdraw()
+    data_path = filedialog.askdirectory()
+
+    AP_times = np.array([  12.01,   35.2 ,   46.51,   74.12,   91.14,  103.63,  114.48,                         
+                        132.14,  142.77,  169.61,  182.33,  197.83,  209.56,  223.5 ,
+                        239.35,  252.31,  263.77,  279.97,  297.53,  310.62,  323.38,
+                        335.92,  365.67,  383.93,  402.83,  417.51,  430.48,  440.9 ,
+                        456.7 ,  468.25,  480.64])
+
+    files_sorted = create_list_trials(data_path, 530, AP_times, Ns_bef=0)
+    print(len(files_sorted), len(files_sorted[0]))
