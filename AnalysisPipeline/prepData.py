@@ -6,9 +6,55 @@ import tifffile as tff
 from scipy.ndimage import shift
 from scipy.optimize import curve_fit
 from skimage.registration import phase_cross_correlation
+import ants
 
 
 #%%  --- TIMESERIES ANALYSIS ---
+
+def create_list_trialsTS(data_path:str, wl:int, event_times:list, Ns_bef:int=3, Ns_aft:int=10, skip_last:bool=True):
+    """Creates a list that contains time stamps cropped and sorted into trials
+
+    Args:
+        data_path (str): folder path for the try, not directly the channel, the folder that contains all the channels
+        wl (int): wavelength, ideally the name of the folder that contains the files to analyze
+        event_times (list): array or list of all the event time stamps, i.e. air puffs delivery or optogenetic stim
+        Ns_bef (int, optional): number of seconds to keep before event. Defaults to 3.
+        Ns_aft (int, optional): number of seconds to keep after event. Defaults to 10.
+        skip_last (bool, optional): skips last trial if not enough time after. Defaults to True
+
+    Returns:
+        list: list of all the time stamps sorted for each trial. Not an array in case the last trial is shorter, but it's useful to change it to an array before use.
+    """
+
+    timestamps = np.load(data_path + "\\{}ts.npy".format(wl))
+    max_time = timestamps[-1]
+    last_event = np.argmin(np.abs((event_times - max_time)))
+    event_times = event_times[0:last_event+1]
+
+    AP_idx = []
+    for ti in event_times:
+        AP_idx.append(np.argmin(np.absolute(timestamps-ti)))
+
+    if skip_last:
+        AP_idx = AP_idx[:-1]
+
+    Nf_bef = Ns_bef*10
+    Nf_aft = Ns_aft*10
+
+    sorted_ts_idx = []
+    for idx in AP_idx:
+        trial_idx = [idx-Nf_bef, idx+Nf_aft]
+        sorted_ts_idx.append(trial_idx)
+
+    ts_by_trial = []
+    for idx, trial_idx in enumerate(sorted_ts_idx):
+        idx_inf = trial_idx[0]
+        idx_sup = trial_idx[1]
+        ts_by_trial.append(timestamps[idx_inf:idx_sup])
+
+    return ts_by_trial
+
+
 
 def regress_drift2D(sig:list, time:list)-> list:
     """Prepares raw data to calculate HbO and HbR: removes 
@@ -85,9 +131,9 @@ def create_list_trials(data_path:str, wl:int, event_times:list, Ns_bef:int=3, Ns
     """ Creates a list that contains files cropped and sorted into trials
 
     Args:
-        data_path (str): folder path for the try, not directlt the channel, the folder that contains all the channels
-        wl (int): wl, ideally the name of the folder that contains the files to analyze
-        event_times (list): _description_
+        data_path (str): folder path for the try, not directly the channel, the folder that contains all the channels
+        wl (int): wavelength, ideally the name of the folder that contains the files to analyze
+        event_times (list): array or list of all the event time stamps, i.e. air puffs delivery or optogenetic stim
         Ns_bef (int, optional): number of seconds to keep before event. Defaults to 3.
         Ns_aft (int, optional): number of seconds to keep after event. Defaults to 10.
         skip_last (bool, optional): skips last trial if not enough time after. Defaults to False
@@ -145,9 +191,7 @@ def create_npy_stack(folder_path:str, save_path:str,  wl:int, saving=False, nFra
 
     if nFrames is not None:
         files = files[:nFrames]
-    # files=files[:250]
     for idx, file in tqdm(enumerate(files)):
-        # frame = tff.TiffFile(folder_path+"\\"+file).asarray()
         frame = tff.TiffFile(file).asarray()
         if idx == 0:
             num_frames = len(files)
@@ -170,19 +214,30 @@ def motion_correction(frames):
     Returns:
         _type_: 3D array of frames after correction
     """
-    fixed_frame = frames[0,:,:]
+    # fixed_frame = frames[0,:,:]
+    # motion_corrected = np.zeros((frames.shape), dtype=np.float32)
+    # for idx, frame in tqdm(enumerate(frames)):
+    #     if idx == 0:
+    #         motion_corrected[0,:,:] = frame
+    #         continue
+    #     shifted, error, diffphase = phase_cross_correlation(fixed_frame, frame, upsample_factor=10)
+    #     corrected_image = shift(frame, shift=(shifted[0], shifted[1]), mode='reflect')
+    #     motion_corrected[idx,:,:] = corrected_image
+    
+    # shifted, error, diffphase, corrected_image, fixed_frame = None, None, None, None, None
+    # return motion_corrected
+
+    fixed_frame = ants.from_numpy(frames[0,:,:])
     motion_corrected = np.zeros((frames.shape), dtype=np.float32)
     for idx, frame in tqdm(enumerate(frames)):
         if idx == 0:
             motion_corrected[0,:,:] = frame
             continue
-        shifted, error, diffphase = phase_cross_correlation(fixed_frame, frame, upsample_factor=10)
-        corrected_image = shift(frame, shift=(shifted[0], shifted[1]), mode='reflect')
-        motion_corrected[idx,:,:] = corrected_image
-    
-    shifted, error, diffphase, corrected_image, fixed_frame = None, None, None, None, None
-    return motion_corrected
+        moving_frame = ants.from_numpy(frame)
+        registration = ants.registration(fixed_frame, moving_frame,  type_of_transform="Affine")
+        motion_corrected[idx,:,:] = ants.apply_transforms(fixed_frame, moving_frame, transformlist=registration["fwdtransforms"]).numpy()
 
+    return motion_corrected
 
 def bin_pixels(frames, bin_size=2):
     """Bins pixels with bin size
@@ -257,6 +312,7 @@ def prepToCompute(frames:list, correct_motion:bool=False, bin_size:int=None, reg
     
     return frames
 
+#%% Tests
 
 if __name__ == "__main__":
     from tkinter import filedialog
@@ -272,5 +328,5 @@ if __name__ == "__main__":
                         335.92,  365.67,  383.93,  402.83,  417.51,  430.48,  440.9 ,
                         456.7 ,  468.25,  480.64])
 
-    files_sorted = create_list_trials(data_path, 530, AP_times, Ns_bef=0)
-    print(len(files_sorted), len(files_sorted[0]))
+    ts_sorted = create_list_trialsTS(data_path, 530, AP_times, skip_last=True)
+    print(np.array(ts_sorted))

@@ -49,7 +49,7 @@ def dHb_pipeline(data_path:str, save_path:str, event_timestamps:list=None, prepr
         save_path (str): path of where to save processed Hb data
         preprocess (bool, optional): Use False if preprocessed file already saved. Defaults to True.
         nFrames (int, optional): number of frames to analyse. If None, analyze all frames
-        correct_motion (bool, optional): Corrects motion in images with phase cross-correlation. Defaults to True.
+        correct_motion (bool, optional): Corrects motion in images with antspy registration. Defaults to True.
         bin_size (int, optional): bins data to make it smaller. Defaults to 2.
         regress (bool, optional): normalizes the data around 1. Defaults to True.
         filter_sigma (float, optional): gaussian filter. None means no filter, otherwise specify sigma. Defaults to 2.5.
@@ -62,7 +62,6 @@ def dHb_pipeline(data_path:str, save_path:str, event_timestamps:list=None, prepr
             print("Loading green data")
             green = create_npy_stack(data_path + "\\530", data_path, 530, saving=False, nFrames=nFrames)
             # green = np.load(data_path + "\\530_rawStack.npy")
-            print("Green data loaded")
             green = prepToCompute(green, correct_motion=correct_motion, bin_size=bin_size, regress=regress)
             np.save(data_path + "\\530_preprocessed.npy", green)
             green = None
@@ -72,7 +71,6 @@ def dHb_pipeline(data_path:str, save_path:str, event_timestamps:list=None, prepr
             print("Loading red data")
             red = create_npy_stack(data_path + "\\625", data_path, 625, saving=False, nFrames=nFrames)
             # red = np.load(data_path + "\\625_rawStack.npy")
-            print("Red data loaded")
             red = prepToCompute(red, correct_motion=correct_motion, bin_size=bin_size, regress=regress)
             np.save(data_path + "\\625_preprocessed.npy", red)
             red = None
@@ -119,7 +117,6 @@ def dHb_pipeline(data_path:str, save_path:str, event_timestamps:list=None, prepr
                 print("Loading green data")
                 green = create_npy_stack(data_path + "\\530", data_path, 530, saving=False, cutAroundEvent=files_by_trial_g[trial_idx])
                 # green = np.load(data_path + "\\530_rawStack.npy")
-                print("Green data loaded")
                 green = prepToCompute(green, correct_motion=correct_motion, bin_size=bin_size, regress=regress)
                 np.save(data_path + "\\530_preprocessed.npy", green)
                 green = None
@@ -129,7 +126,6 @@ def dHb_pipeline(data_path:str, save_path:str, event_timestamps:list=None, prepr
                 print("Loading red data")
                 red = create_npy_stack(data_path + "\\625", data_path, 625, saving=False, cutAroundEvent=files_by_trial_r[trial_idx])
                 # red = np.load(data_path + "\\625_rawStack.npy")
-                print("Red data loaded")
                 red = prepToCompute(red, correct_motion=correct_motion, bin_size=bin_size, regress=regress)
                 np.save(data_path + "\\625_preprocessed.npy", red)
                 red = None
@@ -236,23 +232,23 @@ def dHb_pipeline(data_path:str, save_path:str, event_timestamps:list=None, prepr
 
 
 if __name__ == "__main__":
-    # root = Tk()
-    # root.withdraw()
-    # data_path = filedialog.askdirectory()
+    root = Tk()
+    root.withdraw()
+    data_path = filedialog.askdirectory()
 
-    # save_path = data_path
-    nFrames = 150
-    AP_times = np.array([  12.01,   35.2 ,   46.51])
+    save_path = data_path
+    # nFrames = 150
+    # AP_times = np.array([  12.01,   35.2 ,   46.51])
     # ,   74.12,   91.14,  103.63,  114.48,
     # 132.14,  142.77,  169.61,  182.33,  197.83,  209.56,  223.5 ,
     # 239.35,  252.31,  263.77,  279.97,  297.53,  310.62,  323.38,
     # 335.92,  365.67,  383.93,  402.83,  417.51,  430.48,  440.9 ,
-    # 456.7 ,  468.25,  480.64])
-    opto_stims = np.arange(30, 1000, 32)
-    print(opto_stims)
+    # # 456.7 ,  468.25,  480.64])
+    # opto_stims = np.arange(30, 1000, 32)
+
 
     # Analysis not by trial
-    # dHb_pipeline(data_path, save_path, preprocess=False, bin_size=None, nFrames=nFrames)
+    dHb_pipeline(data_path, save_path, preprocess=True, bin_size=None, nFrames=200)
 
     # Analysis by trial
     # dHb_pipeline(data_path, save_path, AP_times, bin_size=None)

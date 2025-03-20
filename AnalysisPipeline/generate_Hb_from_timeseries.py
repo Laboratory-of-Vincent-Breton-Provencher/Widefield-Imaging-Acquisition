@@ -1,6 +1,6 @@
 import numpy as np
 from ioiMatrices import ioi_epsilon_pathlength
-from prepData import prepToComputeTS
+from prepData import prepToComputeTS, create_list_trialsTS
 from tkinter import filedialog
 from tkinter import *
 from scipy.ndimage import gaussian_filter
@@ -38,7 +38,7 @@ def convertToHbTS(data_green:list, data_red:list):
     return d_HbO, d_HbR
 
 
-def dHb_pipeline(data_path:str, save_path:str, preprocess:bool=True, regress:bool=True, filter_sigma:float=2.5):
+def dHb_pipeline(data_path:str, save_path:str, preprocess:bool=True, regress:bool=True, filter_sigma:float=2.5, separateEvents:list=None):
     """ Analysis pipeline to process raw timeseries into Hb data. Saves processed numpy array containing the 3 types of data (HbO, HbR, HbT).
 
     Args:
@@ -48,6 +48,8 @@ def dHb_pipeline(data_path:str, save_path:str, preprocess:bool=True, regress:boo
         preprocess (bool, optional): Use False if preprocessed file already saved. Defaults to True.
         regress (bool, optional): linear regression to remove LED drift and center data around 1. Defaults to True.
         filter_sigma (float, optional): gaussian filter. None means no filter, otherwise specify sigma. Defaults to 2.5
+        separateEvents (list, optional): changes the shape of the saved output according to the events in the list.
+        Instead of a one dimension array, creates a Nxt dimension for N events of t duration. Defaults to None
     """
     if preprocess:
         # process green
@@ -80,7 +82,7 @@ def dHb_pipeline(data_path:str, save_path:str, preprocess:bool=True, regress:boo
         Hb = gaussian_filter(Hb, sigma=filter_sigma, axes=(1)) # Vérifier axe
 
     # save processed data
-    np.save(save_path + "\\computedHb.npy", Hb)
+    np.save(save_path + "\\computedHb_ts.npy", Hb)
     print("Done")
 
 if __name__ == "__main__":
@@ -88,4 +90,5 @@ if __name__ == "__main__":
     root.withdraw()
     data_path = filedialog.askdirectory()
     save_path = data_path
-    dHb_pipeline(data_path, save_path, filter=True)
+    
+    dHb_pipeline(data_path, save_path, filter_sigma=True)
