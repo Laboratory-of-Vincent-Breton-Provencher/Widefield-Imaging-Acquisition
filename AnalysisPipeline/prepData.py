@@ -56,7 +56,7 @@ def create_list_trialsTS(data_path:str, wl:int, event_times:list, Ns_bef:int=3, 
 
 
 
-def regress_drift2D(sig:list, time:list)-> list:
+def regress_driftTS(sig:list, time:list)-> list:
     """Prepares raw data to calculate HbO and HbR: removes 
         drift if any, and normalizes around 1
 
@@ -91,7 +91,7 @@ def prepToComputeTS(sig:list, time:list, regress=True):
 
     if regress:
         print("Regressing data")
-        sig = regress_drift2D(sig, time)
+        sig = regress_driftTS(sig, time)
 
     return sig
 

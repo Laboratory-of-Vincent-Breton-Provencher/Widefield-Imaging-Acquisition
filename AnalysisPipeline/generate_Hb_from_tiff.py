@@ -90,7 +90,8 @@ def dHb_pipeline(data_path:str, save_path:str, event_timestamps:list=None, prepr
         # filter if needed
         if filter_sigma is not None:
             print("Filtering")
-            Hb = gaussian_filter(Hb, sigma=filter_sigma, axes=(1))
+            print(Hb.shape)
+            Hb = gaussian_filter(Hb, sigma=filter_sigma, axes=(1))  # axe 1 parce 0 est le type de data
         # save processed data as npy
         np.save(save_path + "\\computedHb.npy", Hb)
         # save as tiff
@@ -145,7 +146,7 @@ def dHb_pipeline(data_path:str, save_path:str, event_timestamps:list=None, prepr
             # filter if needed
             if filter_sigma is not None:
                 print("Filtering")
-                Hb = gaussian_filter(Hb, sigma=filter_sigma, axes=(1))
+                Hb = gaussian_filter(Hb, sigma=filter_sigma, axes=(1))  # axe 1 parce 0 est le type de data
             # save processed data as npy
             np.save(save_path + "\\computedHb_trial{}.npy".format(trial_idx), Hb)
             # save as tiff
@@ -248,7 +249,7 @@ if __name__ == "__main__":
 
 
     # Analysis not by trial
-    dHb_pipeline(data_path, save_path, preprocess=True, bin_size=None, nFrames=200)
+    dHb_pipeline(data_path, save_path, preprocess=False, bin_size=None, nFrames=200)
 
     # Analysis by trial
     # dHb_pipeline(data_path, save_path, AP_times, bin_size=None)
