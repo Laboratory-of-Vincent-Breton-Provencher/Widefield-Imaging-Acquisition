@@ -47,8 +47,7 @@ def GCaMP_pipeline(data_path:str, save_path:str, event_timestamps:list=None, pre
         blue = np.load(data_path + "\\470_preprocessed.npy")
         purple = np.load(data_path + "\\405_preprocessed.npy")
 
-        d_gcamp = zscore(blue-purple, axis=0)                       #######
-        print(d_gcamp.shape)
+        d_gcamp = zscore(blue-purple, axis=0)
 
         # resample pixel values
         d_gcamp = resample_pixel_value(d_gcamp, 16).astype(np.uint16)
@@ -60,14 +59,12 @@ def GCaMP_pipeline(data_path:str, save_path:str, event_timestamps:list=None, pre
         np.save(save_path + "\\computedGCaMP.npy", d_gcamp)
         # save as tiff
         print("Saving processed GCaMP")
-
-        test = "\\GCaMP_zscore_b-p"                                        #######
-        
+ 
         try:
             os.mkdir(save_path + test)
         except FileExistsError:
             print("Folder already created")
-        save_as_tiff(d_gcamp, "GCaMP", save_path + test)
+        save_as_tiff(d_gcamp, "GCaMP", save_path + "\\GCaMP")
 
         print("Done")
 #%% trial wise
@@ -100,14 +97,16 @@ def GCaMP_pipeline(data_path:str, save_path:str, event_timestamps:list=None, pre
             blue = np.load(data_path + "\\470_preprocessed.npy")
             purple = np.load(data_path + "\\405_preprocessed.npy")
 
-            d_gcamp = None
+            d_gcamp = zscore(blue-purple, axis=0)
 
-            # resample pixel values
-            d_gcamp = resample_pixel_value(d_gcamp, 16).astype(np.uint16)
             # filter if needed
             if filter_sigma is not None:
                 print("Filtering")
                 d_gcamp = gaussian_filter(d_gcamp, sigma=filter_sigma, axes=(0))
+
+            # resample pixel values
+            d_gcamp = resample_pixel_value(d_gcamp, 16).astype(np.uint16)
+
             # save processed data as npy
             np.save(save_path + "\\computedGCaMP_trial{}.npy".format(trial_idx), d_gcamp)
             # save as tiff
@@ -129,23 +128,12 @@ if __name__ == "__main__":
     data_path = filedialog.askdirectory()
     save_path = data_path
 
-    # AP_times = np.array([  12.01,   35.2 ,   46.51])
-    # ,   74.12,   91.14,  103.63,  114.48,
-    # 132.14,  142.77,  169.61,  182.33,  197.83,  209.56,  223.5 ,
-    # 239.35,  252.31,  263.77,  279.97,  297.53,  310.62,  323.38,
-    # 335.92,  365.67,  383.93,  402.83,  417.51,  430.48,  440.9 ,
-    # # 456.7 ,  468.25,  480.64])
-    # opto_stims = np.arange(30, 1000, 32)
-
+    # AP_times = np.load(r"AnalysisPipeline\Air_puff_timestamps.npy")
+    opto_stims = np.arange(30, 1000, 32)
 
     # Analysis not by trial
-    GCaMP_pipeline(data_path, save_path, preprocess=False, bin_size=None, nFrames=500)
+    # GCaMP_pipeline(data_path, save_path, preprocess=False, bin_size=None, nFrames=500)
 
     # Analysis by trial
-    # GCaMP_pipeline(data_path, save_path, event_timestamps=AP_times, bin_size=None)
-
-    # import matplotlib.pyplot as plt
-    # blue = np.load(r"D:\ggermain\2025-03-21_opto_M914\1_whiskerpad\470_preprocessed.npy")
-    # purple = np.load(r"D:\ggermain\2025-03-21_opto_M914\1_whiskerpad\405_preprocessed.npy")
-    # plt.imshow(blue[0]-purple[0])
-    # plt.show()
+    # GCaMP_pipeline(data_path, save_path, event_timestamps=opto_stims, bin_size=None)
+    

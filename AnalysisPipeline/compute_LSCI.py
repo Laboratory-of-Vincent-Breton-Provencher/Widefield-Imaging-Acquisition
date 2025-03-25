@@ -5,7 +5,7 @@ from tkinter import filedialog
 from tkinter import *
 import numpy as np
 from scipy.ndimage import gaussian_filter, uniform_filter
-from prepData import create_npy_stack, prepToCompute, resample_pixel_value, save_as_tiff
+from prepData import create_npy_stack, prepToCompute, resample_pixel_value, save_as_tiff, create_list_trials
 
 def convertToLSCI(raw_speckle_data:list, window_size:int=7):
     """_summary_
@@ -34,12 +34,13 @@ def convertToLSCI(raw_speckle_data:list, window_size:int=7):
     return contrast_data
 
 
-def LSCI_pipeline(data_path:str, save_path:str, preprocess:bool=True, nFrames:int=None, correct_motion:bool=True, bin_size:int=2, regress:bool=False, filter_sigma:tuple=(2, 1, 1), window_size:int=5):
+def LSCI_pipeline(data_path:str, save_path:str, event_timestamps:list=None, preprocess:bool=True, nFrames:int=None, correct_motion:bool=True, bin_size:int=2, regress:bool=False, filter_sigma:tuple=(2, 1, 1), window_size:int=5):
     """_summary_
 
     Args:
         data_path (str): _description_
         save_path (str): _description_
+        event_timestamps (list, optional): liste of event timestamps (air puffs, optogenetics). Defaults to None
         preprocess (bool, optional): _description_. Defaults to True.
         nFrames (int, optional): number of frames to analyse. If None, analyze all frames
         correct_motion (bool, optional): _description_. Defaults to True.
@@ -49,40 +50,90 @@ def LSCI_pipeline(data_path:str, save_path:str, preprocess:bool=True, nFrames:in
         window_size (int, optional): _description_. Defaults to 7.
     """
 
-    if preprocess:
-        # preprocess 785 nm data
-        print("Loading data")
-        data = create_npy_stack(data_path + "\\785", data_path, 785, saving=False, nFrames=nFrames)
+    # Analyse du data complet sans trier essais. Attention à ne pas buster la ram (limiter avec nFrames)
+    if event_timestamps is None:
+        if preprocess:
+            # preprocess 785 nm data
+            print("Loading data")
+            data = create_npy_stack(data_path + "\\785", data_path, 785, saving=False, nFrames=nFrames)
+            data = data.astype(np.float32)
+            print("Data loaded")
+            data = prepToCompute(data, correct_motion=correct_motion, bin_size=bin_size, regress=regress)
+            np.save(data_path + "\\785_preprocessed.npy", data)
+            data = None
+            print("data preprocessed and saved")
+
+        # converting to LSCI
+        print("Converting to LSCI")
+        data = np.load(data_path + "\\785_preprocessed.npy")
         data = data.astype(np.float32)
-        print("Data loaded")
-        data = prepToCompute(data, correct_motion=correct_motion, bin_size=bin_size, regress=regress)
-        np.save(data_path + "\\785_preprocessed.npy", data)
-        data = None
-        print("data preprocessed and saved")
+        data = convertToLSCI(data, window_size=window_size)
+        if filter_sigma is not None:
+            data = gaussian_filter(data, sigma=filter_sigma)
+        data = resample_pixel_value(data, 16).astype(np.uint16)
+        np.save(save_path + "\\computedLSCI.npy", data)
+        print("Saving LSCI data")
+        try:
+            os.mkdir(save_path + "\\LSCI")
+        except FileExistsError:
+            print("Folder already created")
+        save_as_tiff(data, "LSCI", save_path + "\\LSCI")
 
-    # converting to LSCI
-    print("Converting to LSCI")
-    data = np.load(data_path + "\\785_preprocessed.npy")
-    data = data.astype(np.float32)
-    data = convertToLSCI(data, window_size=window_size)
-    if filter_sigma is not None:
-        data = gaussian_filter(data, sigma=filter_sigma)
-    data = resample_pixel_value(data, 16).astype(np.uint16)
-    np.save(save_path + "\\computedLSCI.npy", data)
-    print("Saving LSCI data")
-    try:
-        os.mkdir(save_path + "\\LSCI")
-    except FileExistsError:
-        print("Folder already created")
-    save_as_tiff(data, "LSCI", save_path + "\\LSCI")
+        print("Done")
 
-    print("Done")
+#%% trial wise
+    # Analyse des essais un à la fois (air puffs, optogen.) plus long, mais risque moins de buster la ram
+    else:
+        print("Analysis by trial")
+        files_by_trial = create_list_trials(data_path, 785, event_timestamps)
 
+        for trial_idx in range(len(files_by_trial)):       
+            if preprocess:
+                # process 785 nm
+                print("Loading data")
+                data = create_npy_stack(data_path + "\\785", data_path, 785, saving=False, cutAroundEvent=files_by_trial[trial_idx])
+                data = data.astype(np.float32)
+                print("Data loaded")
+                data = prepToCompute(data, correct_motion=correct_motion, bin_size=bin_size, regress=regress)
+                np.save(data_path + "\\785_preprocessed.npy", data)
+                data = None
+                print("data preprocessed and saved")
+
+            # converting to LSCI
+            print("Converting to LSCI")
+            data = np.load(data_path + "\\785_preprocessed.npy")
+            data = data.astype(np.float32)
+            data = convertToLSCI(data, window_size=window_size)
+
+            # filter if needed
+            if filter_sigma is not None:
+                data = gaussian_filter(data, sigma=filter_sigma)
+            
+            # resample pixel value
+            data = resample_pixel_value(data, 16).astype(np.uint16)
+
+            # save processed data as npy
+            np.save(save_path + "\\computedLSCI_trial{}.npy".format(trial_idx), data)
+            # save as tiff
+            print("Saving processed Hb")
+            try:
+                os.mkdir(save_path + "\\LSCI")
+            except FileExistsError:
+                print("Folder already created")
+            save_as_tiff(data, "LSCI" + "_trial{}_".format(trial_idx+1), save_path + "\\LSCI")
+
+            print("Done with trial {}".format(trial_idx))
+
+        print("Done for real now")
+#%%
 
 if __name__ == "__main__":
     root = Tk()
     root.withdraw()
     data_path = filedialog.askdirectory()
     save_path = data_path
-    nFrames = 200
-    LSCI_pipeline(data_path, save_path, preprocess=False, nFrames=nFrames)
+
+    # AP_times = np.load(r"AnalysisPipeline\Air_puff_timestamps.npy")
+    # opto_stims = np.arange(30, 1000, 32)
+
+    LSCI_pipeline(data_path, save_path, preprocess=False, nFrames=500)

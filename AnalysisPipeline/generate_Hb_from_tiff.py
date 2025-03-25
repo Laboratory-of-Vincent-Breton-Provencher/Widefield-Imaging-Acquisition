@@ -47,6 +47,7 @@ def dHb_pipeline(data_path:str, save_path:str, event_timestamps:list=None, prepr
     Args:
         data_path (str): path of the raw data
         save_path (str): path of where to save processed Hb data
+        event_timestamps (list, optional): liste of event timestamps (air puffs, optogenetics). Defaults to None
         preprocess (bool, optional): Use False if preprocessed file already saved. Defaults to True.
         nFrames (int, optional): number of frames to analyse. If None, analyze all frames
         correct_motion (bool, optional): Corrects motion in images with antspy registration. Defaults to True.
@@ -236,20 +237,14 @@ if __name__ == "__main__":
     root = Tk()
     root.withdraw()
     data_path = filedialog.askdirectory()
-
     save_path = data_path
-    # nFrames = 150
-    # AP_times = np.array([  12.01,   35.2 ,   46.51])
-    # ,   74.12,   91.14,  103.63,  114.48,
-    # 132.14,  142.77,  169.61,  182.33,  197.83,  209.56,  223.5 ,
-    # 239.35,  252.31,  263.77,  279.97,  297.53,  310.62,  323.38,
-    # 335.92,  365.67,  383.93,  402.83,  417.51,  430.48,  440.9 ,
-    # # 456.7 ,  468.25,  480.64])
+
+    # AP_times = np.load(r"AnalysisPipeline\Air_puff_timestamps.npy")
     # opto_stims = np.arange(30, 1000, 32)
 
 
     # Analysis not by trial
-    dHb_pipeline(data_path, save_path, preprocess=False, bin_size=None, nFrames=200)
+    dHb_pipeline(data_path, save_path, preprocess=False, bin_size=None, nFrames=500)
 
     # Analysis by trial
     # dHb_pipeline(data_path, save_path, AP_times, bin_size=None)

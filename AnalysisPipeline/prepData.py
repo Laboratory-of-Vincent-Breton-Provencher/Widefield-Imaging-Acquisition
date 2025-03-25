@@ -145,7 +145,7 @@ def create_list_trials(data_path:str, wl:int, event_times:list, Ns_bef:int=3, Ns
     files_list = identify_files(data_path + "\\{}".format(wl), ".tif")
     frames_timestamps = np.load(data_path + "\\{}ts.npy".format(wl))
     n_frames = len(files_list)
-    max_time = frames_timestamps[n_frames]
+    max_time = frames_timestamps[n_frames-1]
     last_event = np.argmin(np.abs((event_times - max_time)))
     event_times = event_times[0:last_event+1]
 
