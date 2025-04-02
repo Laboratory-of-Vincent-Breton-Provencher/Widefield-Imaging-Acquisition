@@ -8,7 +8,7 @@ from prepData import create_npy_stack, prepToCompute, resample_pixel_value, save
 
 
 
-def GCaMP_pipeline(data_path:str, save_path:str, event_timestamps:list=None, preprocess:bool=True, nFrames:int=None,  correct_motion:bool=True, bin_size:int=2, regress:bool=False, filter_sigma:float=2):
+def GCaMP_pipeline(data_path:str, save_path:str, event_timestamps:list=None, preprocess:bool=True, isosbectic:bool=True, nFrames:int=None,  correct_motion:bool=True, bin_size:int=2, regress:bool=False, filter_sigma:float=2):
     """ Analysis pipeline to process raw frames into neuronal activity GCaMP. Saves processed tiff files as well as
         the numpy 3D array containing the data.
 
@@ -16,6 +16,7 @@ def GCaMP_pipeline(data_path:str, save_path:str, event_timestamps:list=None, pre
         data_path (str): path of the raw data
         save_path (str): path of where to save processed GCaMP data
         preprocess (bool, optional): Use False if preprocessed file already saved. Defaults to True.
+        isosbectic (bool, optional): Use False if isosbestic images are not available. Defaults to True
         nFrames (int, optional): number of frames to analyse. If None, analyze all frames
         correct_motion (bool, optional): Corrects motion in images with antspy registration. Defaults to True.
         bin_size (int, optional): bins data to make it smaller. Defaults to 2.
@@ -35,19 +36,25 @@ def GCaMP_pipeline(data_path:str, save_path:str, event_timestamps:list=None, pre
             print("Blue data preprocessed and saved")
 
             # process purple
-            print("Loading purple data")
-            purple = create_npy_stack(data_path + "\\405", data_path, 405, saving=False, nFrames=nFrames)
-            purple = prepToCompute(purple, correct_motion=correct_motion, bin_size=bin_size, regress=regress)
-            np.save(data_path + "\\405_preprocessed.npy", purple)
-            purple = None
-            print("Purple data preprocessed and saved")
+            if isosbectic:
+                print("Loading purple data")
+                purple = create_npy_stack(data_path + "\\405", data_path, 405, saving=False, nFrames=nFrames)
+                purple = prepToCompute(purple, correct_motion=correct_motion, bin_size=bin_size, regress=regress)
+                np.save(data_path + "\\405_preprocessed.npy", purple)
+                purple = None
+                print("Purple data preprocessed and saved")
 
         # convert to neuronal activity
         print("Converting to neuronal activity")
         blue = np.load(data_path + "\\470_preprocessed.npy")
-        purple = np.load(data_path + "\\405_preprocessed.npy")
+        if isosbectic:
+            purple = np.load(data_path + "\\405_preprocessed.npy")
 
-        d_gcamp = zscore(blue-purple, axis=0)
+        if isosbectic:
+            d_gcamp = zscore(blue-purple, axis=0)
+
+        else:
+            d_gcamp = zscore(blue, axis=0)
 
         # resample pixel values
         d_gcamp = resample_pixel_value(d_gcamp, 16).astype(np.uint16)
@@ -72,7 +79,8 @@ def GCaMP_pipeline(data_path:str, save_path:str, event_timestamps:list=None, pre
     else:
         print("Analysis by trial")
         files_by_trial_b = create_list_trials(data_path, 470, event_timestamps)
-        files_by_trial_p = create_list_trials(data_path, 405, event_timestamps)
+        if isosbectic:
+            files_by_trial_p = create_list_trials(data_path, 405, event_timestamps)
 
         for trial_idx in range(len(files_by_trial_b)):       
             if preprocess:
@@ -84,20 +92,26 @@ def GCaMP_pipeline(data_path:str, save_path:str, event_timestamps:list=None, pre
                 blue = None
                 print("Blue data preprocessed and saved")
 
-                # process purple
-                print("Loading purple data")
-                purple = create_npy_stack(data_path + "\\405", data_path, 405, saving=False, cutAroundEvent=files_by_trial_p[trial_idx])
-                purple = prepToCompute(purple, correct_motion=correct_motion, bin_size=bin_size, regress=regress)
-                np.save(data_path + "\\405_preprocessed.npy", purple)
-                purple = None
-                print("Purple data preprocessed and saved")
+                if isosbectic:
+                    # process purple
+                    print("Loading purple data")
+                    purple = create_npy_stack(data_path + "\\405", data_path, 405, saving=False, cutAroundEvent=files_by_trial_p[trial_idx])
+                    purple = prepToCompute(purple, correct_motion=correct_motion, bin_size=bin_size, regress=regress)
+                    np.save(data_path + "\\405_preprocessed.npy", purple)
+                    purple = None
+                    print("Purple data preprocessed and saved")
 
             # convert to neuronal activity
             print("Converting to dHb")
             blue = np.load(data_path + "\\470_preprocessed.npy")
-            purple = np.load(data_path + "\\405_preprocessed.npy")
+            if isosbectic:
+                purple = np.load(data_path + "\\405_preprocessed.npy")
 
-            d_gcamp = zscore(blue-purple, axis=0)
+            if isosbectic:
+                d_gcamp = zscore(blue-purple, axis=0)
+
+            else:
+                d_gcamp = zscore(blue, axis=0)
 
             # filter if needed
             if filter_sigma is not None:
@@ -135,5 +149,5 @@ if __name__ == "__main__":
     # GCaMP_pipeline(data_path, save_path, preprocess=False, bin_size=None, nFrames=500)
 
     # Analysis by trial
-    # GCaMP_pipeline(data_path, save_path, event_timestamps=opto_stims, bin_size=None)
+    GCaMP_pipeline(data_path, save_path, event_timestamps=opto_stims, bin_size=2)
     

@@ -134,6 +134,10 @@ if __name__ == "__main__":
     save_path = data_path
 
     # AP_times = np.load(r"AnalysisPipeline\Air_puff_timestamps.npy")
-    # opto_stims = np.arange(30, 1000, 32)
+    opto_stims = np.arange(30, 1000, 32)
 
-    LSCI_pipeline(data_path, save_path, preprocess=False, nFrames=500)
+    # Analysis not by trial
+    # LSCI_pipeline(data_path, save_path, preprocess=False, nFrames=500)
+
+    # Analysis by trial
+    LSCI_pipeline(data_path, save_path, opto_stims, bin_size=2)

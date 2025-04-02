@@ -11,6 +11,7 @@ import cv2
 
 data_path = r"D:\ggermain\2025-03-21_opto_M914\1_whiskerpad"
 computed_folder = "gcamp_computed"
+
 files_list = os.listdir(os.path.join(data_path, computed_folder))
 
 # print(np.arange(30, 1000, 32))

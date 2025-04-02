@@ -40,7 +40,7 @@ def convertToHb(data_green:list, data_red:list):
     return d_HbO, d_HbR
 
 
-def dHb_pipeline(data_path:str, save_path:str, event_timestamps:list=None, preprocess:bool=True, nFrames:int=None,  correct_motion:bool=True, bin_size:int=2, regress:bool=True, filter_sigma:float=2.5):
+def dHb_pipeline(data_path:str, save_path:str, event_timestamps:list=None, preprocess:bool=True, nFrames:int=None,  correct_motion:bool=True, bin_size:int=2, regress:bool=True, filter_sigma:float=2):
     """ Analysis pipeline to process raw frames into Hb data. Saves processed tiff files as well as
         the numpy 4D array containing the 3 types of data (HbO, HbR, HbT).
 
@@ -240,12 +240,12 @@ if __name__ == "__main__":
     save_path = data_path
 
     # AP_times = np.load(r"AnalysisPipeline\Air_puff_timestamps.npy")
-    # opto_stims = np.arange(30, 1000, 32)
+    opto_stims = np.arange(30, 1000, 32)
 
 
     # Analysis not by trial
-    dHb_pipeline(data_path, save_path, preprocess=False, bin_size=None, nFrames=500)
+    # dHb_pipeline(data_path, save_path, preprocess=False, bin_size=None, nFrames=500)
 
     # Analysis by trial
-    # dHb_pipeline(data_path, save_path, AP_times, bin_size=None)
+    dHb_pipeline(data_path, save_path, opto_stims, bin_size=2)
 
