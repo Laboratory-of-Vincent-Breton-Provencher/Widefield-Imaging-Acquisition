@@ -8,7 +8,7 @@ from prepData import create_npy_stack, prepToCompute, resample_pixel_value, save
 
 
 
-def GCaMP_pipeline(data_path:str, save_path:str, event_timestamps:list=None, preprocess:bool=True, isosbectic:bool=True, nFrames:int=None,  correct_motion:bool=True, bin_size:int=2, regress:bool=False, filter_sigma:float=2):
+def GCaMP_pipeline(data_path:str, save_path:str, event_timestamps:list=None, Ns_aft:int=10,  preprocess:bool=True, isosbectic:bool=True, nFrames:int=None,  correct_motion:bool=True, bin_size:int=2, regress:bool=False, filter_sigma:float=2):
     """ Analysis pipeline to process raw frames into neuronal activity GCaMP. Saves processed tiff files as well as
         the numpy 3D array containing the data.
 
@@ -16,6 +16,7 @@ def GCaMP_pipeline(data_path:str, save_path:str, event_timestamps:list=None, pre
         data_path (str): path of the raw data
         save_path (str): path of where to save processed GCaMP data
         preprocess (bool, optional): Use False if preprocessed file already saved. Defaults to True.
+        Ns_aft (int, optional): when processing by trial, how many seconds to analyse after event. Defaults to 10
         isosbectic (bool, optional): Use False if isosbestic images are not available. Defaults to True
         nFrames (int, optional): number of frames to analyse. If None, analyze all frames
         correct_motion (bool, optional): Corrects motion in images with antspy registration. Defaults to True.
@@ -78,9 +79,9 @@ def GCaMP_pipeline(data_path:str, save_path:str, event_timestamps:list=None, pre
     # Analyse des essais un à la fois (air puffs, optogen.) plus long, mais risque moins de buster la ram
     else:
         print("Analysis by trial")
-        files_by_trial_b = create_list_trials(data_path, 470, event_timestamps)
+        files_by_trial_b = create_list_trials(data_path, 470, event_timestamps, Ns_aft=Ns_aft)
         if isosbectic:
-            files_by_trial_p = create_list_trials(data_path, 405, event_timestamps)
+            files_by_trial_p = create_list_trials(data_path, 405, event_timestamps, Ns_aft=Ns_aft)
 
         for trial_idx in range(len(files_by_trial_b)):       
             if preprocess:
@@ -122,7 +123,7 @@ def GCaMP_pipeline(data_path:str, save_path:str, event_timestamps:list=None, pre
             d_gcamp = resample_pixel_value(d_gcamp, 16).astype(np.uint16)
 
             # save processed data as npy
-            np.save(save_path + "\\computedGCaMP_trial{}.npy".format(trial_idx), d_gcamp)
+            np.save(save_path + "\\computedGCaMP_trial{}.npy".format(trial_idx+1), d_gcamp)
             # save as tiff
             print("Saving processed GCaMP")
             try:
@@ -131,7 +132,7 @@ def GCaMP_pipeline(data_path:str, save_path:str, event_timestamps:list=None, pre
                 print("Folder already created")
             save_as_tiff(d_gcamp, "GCaMP" + "_trial{}_".format(trial_idx+1), save_path + "\\GCaMP")
 
-            print("Done with trial {}".format(trial_idx))
+            print("----Done with trial {}".format(trial_idx))
 
         print("Done for real now")
 #%%
@@ -143,11 +144,15 @@ if __name__ == "__main__":
     save_path = data_path
 
     # AP_times = np.load(r"AnalysisPipeline\Air_puff_timestamps.npy")
-    opto_stims = np.arange(30, 1000, 32)
+
+    attente = 30
+    stim = input("Duration of opto stim(to create adequate timestamps)")#5
+    opto_stims = np.arange(attente, 1000, attente+stim)
+    Ns_aft = input("Seconds to analyze after onset of opto stim (trying to gte back to baseline)") #15
 
     # Analysis not by trial
     # GCaMP_pipeline(data_path, save_path, preprocess=False, bin_size=None, nFrames=500)
 
     # Analysis by trial
-    GCaMP_pipeline(data_path, save_path, event_timestamps=opto_stims, bin_size=2)
+    GCaMP_pipeline(data_path, save_path, event_timestamps=opto_stims, bin_size=2, Ns_aft=Ns_aft)
     

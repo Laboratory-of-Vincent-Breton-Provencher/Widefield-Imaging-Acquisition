@@ -12,6 +12,7 @@ import cv2
 data_path = r"D:\ggermain\2025-03-21_opto_M914\1_whiskerpad"
 computed_folder = "gcamp_computed"
 
+
 files_list = os.listdir(os.path.join(data_path, computed_folder))
 
 # print(np.arange(30, 1000, 32))
@@ -23,6 +24,7 @@ for idx, file in enumerate(files_list):
     if idx == 0:
         timeseries = np.zeros((len(files_list), data.shape[0]))   # moyenne sur une région, temporel seulement
         x_mot, y_mot, w_mot, h_mot = cv2.selectROI("Select motion zone", data[0,:,:])
+        cv2.destroyAllWindows()
     
     avg_zone = data[:,y_mot:y_mot+h_mot, x_mot:x_mot+w_mot]
     avg = np.mean(avg_zone, axis=(1, 2))

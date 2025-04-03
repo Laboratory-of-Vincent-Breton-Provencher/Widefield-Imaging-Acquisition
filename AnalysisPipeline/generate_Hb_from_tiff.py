@@ -40,7 +40,7 @@ def convertToHb(data_green:list, data_red:list):
     return d_HbO, d_HbR
 
 
-def dHb_pipeline(data_path:str, save_path:str, event_timestamps:list=None, preprocess:bool=True, nFrames:int=None,  correct_motion:bool=True, bin_size:int=2, regress:bool=True, filter_sigma:float=2):
+def dHb_pipeline(data_path:str, save_path:str, event_timestamps:list=None, Ns_aft:int=10, preprocess:bool=True, nFrames:int=None,  correct_motion:bool=True, bin_size:int=2, regress:bool=True, filter_sigma:float=2):
     """ Analysis pipeline to process raw frames into Hb data. Saves processed tiff files as well as
         the numpy 4D array containing the 3 types of data (HbO, HbR, HbT).
 
@@ -48,6 +48,7 @@ def dHb_pipeline(data_path:str, save_path:str, event_timestamps:list=None, prepr
         data_path (str): path of the raw data
         save_path (str): path of where to save processed Hb data
         event_timestamps (list, optional): liste of event timestamps (air puffs, optogenetics). Defaults to None
+        Ns_aft (int, optional): when processing by trial, how many seconds to analyse after event. Defaults to 10
         preprocess (bool, optional): Use False if preprocessed file already saved. Defaults to True.
         nFrames (int, optional): number of frames to analyse. If None, analyze all frames
         correct_motion (bool, optional): Corrects motion in images with antspy registration. Defaults to True.
@@ -110,10 +111,10 @@ def dHb_pipeline(data_path:str, save_path:str, event_timestamps:list=None, prepr
     # Analyse des essais un à la fois (air puffs, optogen.) plus long, mais risque moins de buster la ram
     else:
         print("Analysis by trial")
-        files_by_trial_g = create_list_trials(data_path, 530, event_timestamps)
-        files_by_trial_r = create_list_trials(data_path, 625, event_timestamps)
+        files_by_trial_g = create_list_trials(data_path, 530, event_timestamps, skip_last=True, Ns_aft=Ns_aft)
+        files_by_trial_r = create_list_trials(data_path, 625, event_timestamps, skip_last=True, Ns_aft=Ns_aft)
 
-        for trial_idx in range(len(files_by_trial_g)):       
+        for trial_idx in range(len(files_by_trial_g)):
             if preprocess:
                 # process green
                 print("Loading green data")
@@ -149,7 +150,7 @@ def dHb_pipeline(data_path:str, save_path:str, event_timestamps:list=None, prepr
                 print("Filtering")
                 Hb = gaussian_filter(Hb, sigma=filter_sigma, axes=(1))  # axe 1 parce 0 est le type de data
             # save processed data as npy
-            np.save(save_path + "\\computedHb_trial{}.npy".format(trial_idx), Hb)
+            np.save(save_path + "\\computedHb_trial{}.npy".format(trial_idx+1), Hb)
             # save as tiff
             print("Saving processed Hb")
             data_types = ['HbO', 'HbR', 'HbT']
@@ -160,7 +161,7 @@ def dHb_pipeline(data_path:str, save_path:str, event_timestamps:list=None, prepr
                     print("Folder already created")
                 save_as_tiff(frames, typpe + "_trial{}_".format(trial_idx+1), save_path + "\\" + typpe)
 
-            print("Done with trial {}".format(trial_idx))
+            print("----Done with trial {}".format(trial_idx))
 
         print("Done for real now")
 
@@ -240,12 +241,15 @@ if __name__ == "__main__":
     save_path = data_path
 
     # AP_times = np.load(r"AnalysisPipeline\Air_puff_timestamps.npy")
-    opto_stims = np.arange(30, 1000, 32)
 
+    attente = 30
+    stim = int(input("Duration of opto stim(to create adequate timestamps)"))#5
+    opto_stims = np.arange(attente, 1000, attente+stim)
+    Ns_aft = int(input("Seconds to analyze after onset of opto stim (trying to gte back to baseline)")) #15
 
     # Analysis not by trial
     # dHb_pipeline(data_path, save_path, preprocess=False, bin_size=None, nFrames=500)
 
     # Analysis by trial
-    dHb_pipeline(data_path, save_path, opto_stims, bin_size=2)
+    dHb_pipeline(data_path, save_path, opto_stims, bin_size=2, Ns_aft=Ns_aft)
 

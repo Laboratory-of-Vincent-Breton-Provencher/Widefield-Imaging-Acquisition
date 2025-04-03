@@ -17,16 +17,39 @@ file2 = files_list[518]
 im1 = ants.from_numpy(tff.TiffFile(file1).asarray())
 im2 = ants.from_numpy(tff.TiffFile(file2).asarray())
 
-plt.imshow(im1.numpy() - im2.numpy())
-plt.show()
-
 
 registration = ants.registration(im1, im2, type_of_transform="Affine")
 
 im_corrected = ants.apply_transforms(im1, im2, transformlist=registration["fwdtransforms"]).numpy()
 
-plt.imshow(im1.numpy()-im_corrected)
+
+fig, axs = plt.subplots(1, 3, figsize=(12,4))
+
+
+ax = plt.subplot(1, 3, 1)
+ax.set_title("a)", loc='left')
+ax.imshow(im1.numpy() - im2.numpy())
+plt.axis('off')
+
+ax = plt.subplot(1, 3, 2)
+ax.set_title("b)", loc='left')
+ax.imshow(im1.numpy()-im_corrected)
+plt.axis('off')
+
+ax = plt.subplot(1, 3, 3)
+ax.set_title("c)", loc='left')
+ax.imshow(im2.numpy()-im_corrected)
+plt.axis('off')
+
+plt.savefig("motion_correction_example.png", dpi=600)
+
 plt.show()
 
-plt.imshow(im2.numpy()-im_corrected)
-plt.show()
+# plt.imshow(im1.numpy() - im2.numpy())
+# plt.show()
+
+# plt.imshow(im1.numpy()-im_corrected)
+# plt.show()
+
+# plt.imshow(im2.numpy()-im_corrected)
+# plt.show()

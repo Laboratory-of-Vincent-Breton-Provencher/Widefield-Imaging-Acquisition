@@ -34,13 +34,14 @@ def convertToLSCI(raw_speckle_data:list, window_size:int=7):
     return contrast_data
 
 
-def LSCI_pipeline(data_path:str, save_path:str, event_timestamps:list=None, preprocess:bool=True, nFrames:int=None, correct_motion:bool=True, bin_size:int=2, regress:bool=False, filter_sigma:tuple=(2, 1, 1), window_size:int=5):
+def LSCI_pipeline(data_path:str, save_path:str, event_timestamps:list=None, Ns_aft:int=10, preprocess:bool=True, nFrames:int=None, correct_motion:bool=True, bin_size:int=2, regress:bool=False, filter_sigma:tuple=(2, 1, 1), window_size:int=5):
     """_summary_
 
     Args:
         data_path (str): _description_
         save_path (str): _description_
         event_timestamps (list, optional): liste of event timestamps (air puffs, optogenetics). Defaults to None
+        Ns_aft (int, optional): when processing by trial, how many seconds to analyse after event. Defaults to 10
         preprocess (bool, optional): _description_. Defaults to True.
         nFrames (int, optional): number of frames to analyse. If None, analyze all frames
         correct_motion (bool, optional): _description_. Defaults to True.
@@ -85,7 +86,7 @@ def LSCI_pipeline(data_path:str, save_path:str, event_timestamps:list=None, prep
     # Analyse des essais un à la fois (air puffs, optogen.) plus long, mais risque moins de buster la ram
     else:
         print("Analysis by trial")
-        files_by_trial = create_list_trials(data_path, 785, event_timestamps)
+        files_by_trial = create_list_trials(data_path, 785, event_timestamps, Ns_aft=Ns_aft)
 
         for trial_idx in range(len(files_by_trial)):       
             if preprocess:
@@ -113,7 +114,7 @@ def LSCI_pipeline(data_path:str, save_path:str, event_timestamps:list=None, prep
             data = resample_pixel_value(data, 16).astype(np.uint16)
 
             # save processed data as npy
-            np.save(save_path + "\\computedLSCI_trial{}.npy".format(trial_idx), data)
+            np.save(save_path + "\\computedLSCI_trial{}.npy".format(trial_idx+1), data)
             # save as tiff
             print("Saving processed Hb")
             try:
@@ -122,7 +123,7 @@ def LSCI_pipeline(data_path:str, save_path:str, event_timestamps:list=None, prep
                 print("Folder already created")
             save_as_tiff(data, "LSCI" + "_trial{}_".format(trial_idx+1), save_path + "\\LSCI")
 
-            print("Done with trial {}".format(trial_idx))
+            print("----Done with trial {}".format(trial_idx))
 
         print("Done for real now")
 #%%
@@ -134,10 +135,14 @@ if __name__ == "__main__":
     save_path = data_path
 
     # AP_times = np.load(r"AnalysisPipeline\Air_puff_timestamps.npy")
-    opto_stims = np.arange(30, 1000, 32)
+
+    attente = 30
+    stim = input("Duration of opto stim(to create adequate timestamps)")#5
+    opto_stims = np.arange(attente, 1000, attente+stim)
+    Ns_aft = input("Seconds to analyze after onset of opto stim (trying to gte back to baseline)") #15
 
     # Analysis not by trial
     # LSCI_pipeline(data_path, save_path, preprocess=False, nFrames=500)
 
     # Analysis by trial
-    LSCI_pipeline(data_path, save_path, opto_stims, bin_size=2)
+    LSCI_pipeline(data_path, save_path, opto_stims, bin_size=2, Ns_aft=Ns_aft)
