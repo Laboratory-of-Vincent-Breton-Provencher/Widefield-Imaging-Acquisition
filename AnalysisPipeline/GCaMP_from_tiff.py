@@ -79,9 +79,9 @@ def GCaMP_pipeline(data_path:str, save_path:str, event_timestamps:list=None, Ns_
     # Analyse des essais un à la fois (air puffs, optogen.) plus long, mais risque moins de buster la ram
     else:
         print("Analysis by trial")
-        files_by_trial_b = create_list_trials(data_path, 470, event_timestamps, Ns_aft=Ns_aft)
+        files_by_trial_b = create_list_trials(data_path, 470, event_timestamps, skip_last=True, Ns_aft=Ns_aft)
         if isosbectic:
-            files_by_trial_p = create_list_trials(data_path, 405, event_timestamps, Ns_aft=Ns_aft)
+            files_by_trial_p = create_list_trials(data_path, 405, event_timestamps, skip_last=True, Ns_aft=Ns_aft)
 
         for trial_idx in range(len(files_by_trial_b)):       
             if preprocess:
@@ -146,9 +146,9 @@ if __name__ == "__main__":
     # AP_times = np.load(r"AnalysisPipeline\Air_puff_timestamps.npy")
 
     attente = 30
-    stim = input("Duration of opto stim(to create adequate timestamps)")#5
+    stim = 5 #int(input("Duration of opto stim(to create adequate timestamps)"))
+    Ns_aft = 15 #int(input("Seconds to analyze after onset of opto stim (trying to gte back to baseline)"))
     opto_stims = np.arange(attente, 1000, attente+stim)
-    Ns_aft = input("Seconds to analyze after onset of opto stim (trying to gte back to baseline)") #15
 
     # Analysis not by trial
     # GCaMP_pipeline(data_path, save_path, preprocess=False, bin_size=None, nFrames=500)

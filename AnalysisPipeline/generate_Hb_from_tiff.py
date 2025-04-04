@@ -243,9 +243,9 @@ if __name__ == "__main__":
     # AP_times = np.load(r"AnalysisPipeline\Air_puff_timestamps.npy")
 
     attente = 30
-    stim = int(input("Duration of opto stim(to create adequate timestamps)"))#5
+    stim = 5 #int(input("Duration of opto stim(to create adequate timestamps)"))
+    Ns_aft = 15 #int(input("Seconds to analyze after onset of opto stim (trying to gte back to baseline)"))
     opto_stims = np.arange(attente, 1000, attente+stim)
-    Ns_aft = int(input("Seconds to analyze after onset of opto stim (trying to gte back to baseline)")) #15
 
     # Analysis not by trial
     # dHb_pipeline(data_path, save_path, preprocess=False, bin_size=None, nFrames=500)

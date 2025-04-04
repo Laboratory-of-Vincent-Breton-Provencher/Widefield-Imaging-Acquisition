@@ -7,12 +7,12 @@ import numpy as np
 from scipy.ndimage import gaussian_filter, uniform_filter
 from prepData import create_npy_stack, prepToCompute, resample_pixel_value, save_as_tiff, create_list_trials
 
-def convertToLSCI(raw_speckle_data:list, window_size:int=7):
+def convertToLSCI(raw_speckle_data:list, window_size:int=5):
     """_summary_
 
     Args:
         raw_speckle_data (list): _description_
-        window_size (int, optional): _description_. Defaults to 7.
+        window_size (int, optional): _description_. Defaults to 5.
 
     Returns:
         list: _description_
@@ -45,7 +45,7 @@ def LSCI_pipeline(data_path:str, save_path:str, event_timestamps:list=None, Ns_a
         preprocess (bool, optional): _description_. Defaults to True.
         nFrames (int, optional): number of frames to analyse. If None, analyze all frames
         correct_motion (bool, optional): _description_. Defaults to True.
-        bin_size (int, optional): _description_. Defaults to 2.
+        bin_size (int, optional): Use None if no bining is needed. Defaults to 2.
         regress (bool, optional): _description_. Defaults to True.
         filter_sigma (tuple, optional): sigma values of filter. Defaults to (2, 1, 1).
         window_size (int, optional): _description_. Defaults to 7.
@@ -86,7 +86,7 @@ def LSCI_pipeline(data_path:str, save_path:str, event_timestamps:list=None, Ns_a
     # Analyse des essais un à la fois (air puffs, optogen.) plus long, mais risque moins de buster la ram
     else:
         print("Analysis by trial")
-        files_by_trial = create_list_trials(data_path, 785, event_timestamps, Ns_aft=Ns_aft)
+        files_by_trial = create_list_trials(data_path, 785, event_timestamps, skip_last=True, Ns_aft=Ns_aft)
 
         for trial_idx in range(len(files_by_trial)):       
             if preprocess:
@@ -137,12 +137,12 @@ if __name__ == "__main__":
     # AP_times = np.load(r"AnalysisPipeline\Air_puff_timestamps.npy")
 
     attente = 30
-    stim = input("Duration of opto stim(to create adequate timestamps)")#5
+    stim = 5 #int(input("Duration of opto stim(to create adequate timestamps)"))
+    Ns_aft = 15 #int(input("Seconds to analyze after onset of opto stim (trying to gte back to baseline)"))
     opto_stims = np.arange(attente, 1000, attente+stim)
-    Ns_aft = input("Seconds to analyze after onset of opto stim (trying to gte back to baseline)") #15
 
     # Analysis not by trial
     # LSCI_pipeline(data_path, save_path, preprocess=False, nFrames=500)
 
     # Analysis by trial
-    LSCI_pipeline(data_path, save_path, opto_stims, bin_size=2, Ns_aft=Ns_aft)
+    LSCI_pipeline(data_path, save_path, opto_stims, bin_size=None, Ns_aft=Ns_aft)
