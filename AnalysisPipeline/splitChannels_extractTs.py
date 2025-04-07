@@ -32,7 +32,7 @@ def find_fname(Path:str, extension:str) -> list:
 splitChannels = 0
 extractTs = 1
 
-FLAG405 = 1
+FLAG405 = 0
 FLAG470 = 1
 FLAG530 = 1
 FLAG625 = 1

@@ -150,7 +150,15 @@ def dHb_pipeline(data_path:str, save_path:str, event_timestamps:list=None, Ns_af
                 print("Filtering")
                 Hb = gaussian_filter(Hb, sigma=filter_sigma, axes=(1))  # axe 1 parce 0 est le type de data
             # save processed data as npy
-            np.save(save_path + "\\computedHb_trial{}.npy".format(trial_idx+1), Hb)
+            try:
+                os.mkdir(save_path + "\\computed_npy")
+            except FileExistsError:
+                pass
+            try:
+                os.mkdir(save_path + "\\computed_npy\\Hb")
+            except FileExistsError:
+                pass
+            np.save(save_path + "computed_npy\\Hb\\computedHb_trial{}.npy".format(trial_idx+1), Hb)
             # save as tiff
             print("Saving processed Hb")
             data_types = ['HbO', 'HbR', 'HbT']
@@ -161,7 +169,7 @@ def dHb_pipeline(data_path:str, save_path:str, event_timestamps:list=None, Ns_af
                     print("Folder already created")
                 save_as_tiff(frames, typpe + "_trial{}_".format(trial_idx+1), save_path + "\\" + typpe)
 
-            print("----Done with trial {}".format(trial_idx))
+            print("----Done with trial {}".format(trial_idx+1))
 
         print("Done for real now")
 
@@ -240,16 +248,14 @@ if __name__ == "__main__":
     data_path = filedialog.askdirectory()
     save_path = data_path
 
-    # AP_times = np.load(r"AnalysisPipeline\Air_puff_timestamps.npy")
-
-    attente = 30
-    stim = 5 #int(input("Duration of opto stim(to create adequate timestamps)"))
+    AP_times = np.load(r"AnalysisPipeline\Air_puff_timestamps.npy")
+    # attente = 30
+    # stim = 5 #int(input("Duration of opto stim(to create adequate timestamps)"))
+    # opto_stims = np.arange(attente, 1000, attente+stim)
     Ns_aft = 15 #int(input("Seconds to analyze after onset of opto stim (trying to gte back to baseline)"))
-    opto_stims = np.arange(attente, 1000, attente+stim)
 
     # Analysis not by trial
     # dHb_pipeline(data_path, save_path, preprocess=False, bin_size=None, nFrames=500)
 
     # Analysis by trial
-    dHb_pipeline(data_path, save_path, opto_stims, bin_size=2, Ns_aft=Ns_aft)
-
+    dHb_pipeline(data_path, save_path, AP_times, bin_size=2, Ns_aft=Ns_aft)

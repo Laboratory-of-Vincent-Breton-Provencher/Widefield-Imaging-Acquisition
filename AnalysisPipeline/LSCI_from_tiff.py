@@ -114,7 +114,15 @@ def LSCI_pipeline(data_path:str, save_path:str, event_timestamps:list=None, Ns_a
             data = resample_pixel_value(data, 16).astype(np.uint16)
 
             # save processed data as npy
-            np.save(save_path + "\\computedLSCI_trial{}.npy".format(trial_idx+1), data)
+            try:
+                os.mkdir(save_path + "\\computed_npy")
+            except FileExistsError:
+                pass
+            try:
+                os.mkdir(save_path + "\\computed_npy\\LSCI")
+            except FileExistsError:
+                pass
+            np.save(save_path + "\\computed_npy\\LSCI\\computedLSCI_trial{}.npy".format(trial_idx+1), data)
             # save as tiff
             print("Saving processed Hb")
             try:
@@ -123,7 +131,7 @@ def LSCI_pipeline(data_path:str, save_path:str, event_timestamps:list=None, Ns_a
                 print("Folder already created")
             save_as_tiff(data, "LSCI" + "_trial{}_".format(trial_idx+1), save_path + "\\LSCI")
 
-            print("----Done with trial {}".format(trial_idx))
+            print("----Done with trial {}".format(trial_idx+1))
 
         print("Done for real now")
 #%%
@@ -134,15 +142,14 @@ if __name__ == "__main__":
     data_path = filedialog.askdirectory()
     save_path = data_path
 
-    # AP_times = np.load(r"AnalysisPipeline\Air_puff_timestamps.npy")
-
-    attente = 30
-    stim = 5 #int(input("Duration of opto stim(to create adequate timestamps)"))
+    AP_times = np.load(r"AnalysisPipeline\Air_puff_timestamps.npy")
+    # attente = 30
+    # stim = 5 #int(input("Duration of opto stim(to create adequate timestamps)"))
+    # opto_stims = np.arange(attente, 1000, attente+stim)
     Ns_aft = 15 #int(input("Seconds to analyze after onset of opto stim (trying to gte back to baseline)"))
-    opto_stims = np.arange(attente, 1000, attente+stim)
 
     # Analysis not by trial
     # LSCI_pipeline(data_path, save_path, preprocess=False, nFrames=500)
 
     # Analysis by trial
-    LSCI_pipeline(data_path, save_path, opto_stims, bin_size=None, Ns_aft=Ns_aft)
+    LSCI_pipeline(data_path, save_path, AP_times, bin_size=None, Ns_aft=Ns_aft)

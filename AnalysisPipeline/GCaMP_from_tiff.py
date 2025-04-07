@@ -123,7 +123,15 @@ def GCaMP_pipeline(data_path:str, save_path:str, event_timestamps:list=None, Ns_
             d_gcamp = resample_pixel_value(d_gcamp, 16).astype(np.uint16)
 
             # save processed data as npy
-            np.save(save_path + "\\computedGCaMP_trial{}.npy".format(trial_idx+1), d_gcamp)
+            try:
+                os.mkdir(save_path + "\\computed_npy")
+            except FileExistsError:
+                pass
+            try:
+                os.mkdir(save_path + "\\computed_npy\\GCaMP")
+            except FileExistsError:
+                pass
+            np.save(save_path + "computed_npy\\GCaMP\\computedGCaMP_trial{}.npy".format(trial_idx+1), d_gcamp)
             # save as tiff
             print("Saving processed GCaMP")
             try:
@@ -132,7 +140,7 @@ def GCaMP_pipeline(data_path:str, save_path:str, event_timestamps:list=None, Ns_
                 print("Folder already created")
             save_as_tiff(d_gcamp, "GCaMP" + "_trial{}_".format(trial_idx+1), save_path + "\\GCaMP")
 
-            print("----Done with trial {}".format(trial_idx))
+            print("----Done with trial {}".format(trial_idx+1))
 
         print("Done for real now")
 #%%
@@ -143,16 +151,15 @@ if __name__ == "__main__":
     data_path = filedialog.askdirectory()
     save_path = data_path
 
-    # AP_times = np.load(r"AnalysisPipeline\Air_puff_timestamps.npy")
-
-    attente = 30
-    stim = 5 #int(input("Duration of opto stim(to create adequate timestamps)"))
+    AP_times = np.load(r"AnalysisPipeline\Air_puff_timestamps.npy")
+    # attente = 30
+    # stim = 5 #int(input("Duration of opto stim(to create adequate timestamps)"))
+    # opto_stims = np.arange(attente, 1000, attente+stim)
     Ns_aft = 15 #int(input("Seconds to analyze after onset of opto stim (trying to gte back to baseline)"))
-    opto_stims = np.arange(attente, 1000, attente+stim)
 
     # Analysis not by trial
     # GCaMP_pipeline(data_path, save_path, preprocess=False, bin_size=None, nFrames=500)
 
     # Analysis by trial
-    GCaMP_pipeline(data_path, save_path, event_timestamps=opto_stims, bin_size=2, Ns_aft=Ns_aft)
+    GCaMP_pipeline(data_path, save_path, event_timestamps=AP_times, bin_size=2, Ns_aft=Ns_aft, isosbectic=False,filter_sigma=1.5)
     
