@@ -161,5 +161,5 @@ if __name__ == "__main__":
     # GCaMP_pipeline(data_path, save_path, preprocess=False, bin_size=None, nFrames=500)
 
     # Analysis by trial
-    GCaMP_pipeline(data_path, save_path, event_timestamps=opto_stims, bin_size=2, Ns_aft=Ns_aft, filter_sigma=None)
+    GCaMP_pipeline(data_path, save_path, event_timestamps=opto_stims, bin_size=2, Ns_aft=Ns_aft, isosbectic=False)
     

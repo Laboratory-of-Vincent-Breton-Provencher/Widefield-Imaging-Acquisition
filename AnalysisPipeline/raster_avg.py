@@ -1,4 +1,3 @@
-#%%
 from matplotlib import pyplot as plt
 from matplotlib import colormaps as clm
 import numpy as np
@@ -11,17 +10,15 @@ import cv2
 from tqdm import tqdm
 
 
-print(np.load(r"C:\Users\gabri\Documents\Université\Maitrise\Projet\Widefield-Imaging-Acquisition\AnalysisPipeline\Air_puff_timestamps.npy"))
-#%%
 # choose data, à choisir à la main
 
-stim_dur = 0.05
-# first_stim = 30 # optogenetics
-first_stim = 12.01  # Air puffs
-data_path = r"D:\\ggermain\\2025-04-02_opto5s\\1" 
-# data_path = r"D:\\ggermain\\2024-09-17_air_puffs"
+stim_dur = 5 #0.05
+first_stim = 30 # optogenetics
+# first_stim = 12.01  # Air puffs
+data_path = r"D:\ggermain\2025-04-02_opto5s\1\no_sigma" 
+# data_path = r"D:\ggermain\2024-09-17_air_puffs"
 # data_path = r"D:\\ggermain\\2025-03-21_opto2s\\1_whiskerpad"            # expérience: date, essai
-computed_folders = ( "GCaMP_s1", "LSCI", "pupil", "motion_energy")        # "Hb") # data à comparer, choisir data appropprié
+computed_folders = ( "GCaMP", "LSCI")#, "pupil", "motion_energy")        # "Hb") # data à comparer, choisir data appropprié
 
 # for figures, make suredimensions are compatible with signals
 titles = computed_folders
