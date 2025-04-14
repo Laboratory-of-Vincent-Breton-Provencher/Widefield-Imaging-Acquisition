@@ -131,7 +131,7 @@ def GCaMP_pipeline(data_path:str, save_path:str, event_timestamps:list=None, Ns_
                 os.mkdir(save_path + "\\computed_npy\\GCaMP")
             except FileExistsError:
                 pass
-            np.save(save_path + "computed_npy\\GCaMP\\computedGCaMP_trial{}.npy".format(trial_idx+1), d_gcamp)
+            np.save(save_path + "\\computed_npy\\GCaMP\\computedGCaMP_trial{}.npy".format(trial_idx+1), d_gcamp)
             # save as tiff
             print("Saving processed GCaMP")
             try:
@@ -151,15 +151,15 @@ if __name__ == "__main__":
     data_path = filedialog.askdirectory()
     save_path = data_path
 
-    AP_times = np.load(r"AnalysisPipeline\Air_puff_timestamps.npy")
-    # attente = 30
-    # stim = 5 #int(input("Duration of opto stim(to create adequate timestamps)"))
-    # opto_stims = np.arange(attente, 1000, attente+stim)
+    # AP_times = np.load(r"AnalysisPipeline\Air_puff_timestamps.npy")
+    attente = 30
+    stim = 5 #int(input("Duration of opto stim(to create adequate timestamps)"))
+    opto_stims = np.arange(attente, 1000, attente+stim)
     Ns_aft = 15 #int(input("Seconds to analyze after onset of opto stim (trying to gte back to baseline)"))
 
     # Analysis not by trial
     # GCaMP_pipeline(data_path, save_path, preprocess=False, bin_size=None, nFrames=500)
 
     # Analysis by trial
-    GCaMP_pipeline(data_path, save_path, event_timestamps=AP_times, bin_size=2, Ns_aft=Ns_aft, isosbectic=False,filter_sigma=1.5)
+    GCaMP_pipeline(data_path, save_path, event_timestamps=opto_stims, bin_size=2, Ns_aft=Ns_aft, filter_sigma=None)
     
