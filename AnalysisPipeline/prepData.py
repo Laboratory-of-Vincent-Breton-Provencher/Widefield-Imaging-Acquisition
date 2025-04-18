@@ -124,7 +124,7 @@ def save_as_tiff(frames, data_type, save_path):
     """
     for idx, frame in tqdm(enumerate(frames)):
         im = Image.fromarray(frame, mode='I;16')
-        im.save(save_path + "\\{}.tiff".format(data_type + str(idx)), "TIFF")
+        im.save(save_path + "\\{}.tiff".format(data_type + str(idx+0)), "TIFF")                                # changer idx
 
 
 def create_list_trials(data_path:str, wl:int, event_times:list, Ns_bef:int=3, Ns_aft:int=10, skip_last:bool=False): 
@@ -190,7 +190,7 @@ def create_npy_stack(folder_path:str, save_path:str,  wl:int, saving=False, nFra
         files = identify_files(folder_path, "tif")
 
     if nFrames is not None:
-        files = files[:nFrames]
+        files = files[:nFrames]                                                                   # changer début range
     for idx, file in tqdm(enumerate(files)):
         frame = tff.TiffFile(file).asarray()
         if idx == 0:

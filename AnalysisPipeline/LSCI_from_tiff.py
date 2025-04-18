@@ -7,6 +7,8 @@ import numpy as np
 from scipy.ndimage import gaussian_filter, uniform_filter
 from prepData import create_npy_stack, prepToCompute, resample_pixel_value, save_as_tiff, create_list_trials
 
+import matplotlib.pyplot as plt
+
 def convertToLSCI(raw_speckle_data:list, window_size:int=5):
     """_summary_
 
@@ -26,11 +28,12 @@ def convertToLSCI(raw_speckle_data:list, window_size:int=5):
         # Calculate local mean and standard deviation for the current frame
         local_mean = uniform_filter(frame_data, size=window_size)
         local_variance = uniform_filter(frame_data**2, size=window_size) - local_mean**2
-        local_std = np.sqrt(local_variance)
+        local_std = np.sqrt(local_variance) + 1         # +1 pour éviter division par zéro
+
         
         # Calculate speckle contrast for the current frame
         contrast_data[frame_idx] = 1/(local_std / local_mean)**2
-    
+
     return contrast_data
 
 
@@ -68,6 +71,7 @@ def LSCI_pipeline(data_path:str, save_path:str, event_timestamps:list=None, Ns_a
         print("Converting to LSCI")
         data = np.load(data_path + "\\785_preprocessed.npy")
         data = data.astype(np.float32)
+        # data = data[:,:,:450]             # si zone à délimiter
         data = convertToLSCI(data, window_size=window_size)
         if filter_sigma is not None:
             data = gaussian_filter(data, sigma=filter_sigma)
@@ -137,19 +141,20 @@ def LSCI_pipeline(data_path:str, save_path:str, event_timestamps:list=None, Ns_a
 #%%
 
 if __name__ == "__main__":
-    root = Tk()
-    root.withdraw()
-    data_path = filedialog.askdirectory()
+    # root = Tk()
+    # root.withdraw()
+    # data_path = filedialog.askdirectory()
+    data_path = r"D:\ggermain\2025-04-02_opto5s\2_rideau_ouvert"
     save_path = data_path
 
-    AP_times = np.load(r"AnalysisPipeline\Air_puff_timestamps.npy")
+    # AP_times = np.load(r"AnalysisPipeline\Air_puff_timestamps.npy")
     # attente = 30
     # stim = 5 #int(input("Duration of opto stim(to create adequate timestamps)"))
     # opto_stims = np.arange(attente, 1000, attente+stim)
-    Ns_aft = 15 #int(input("Seconds to analyze after onset of opto stim (trying to gte back to baseline)"))
+    # Ns_aft = 15 #int(input("Seconds to analyze after onset of opto stim (trying to gte back to baseline)"))
 
     # Analysis not by trial
-    # LSCI_pipeline(data_path, save_path, preprocess=False, nFrames=500)
+    LSCI_pipeline(data_path, save_path, preprocess=True, correct_motion=False, bin_size=None, filter_sigma=1.5)
 
     # Analysis by trial
-    LSCI_pipeline(data_path, save_path, AP_times, bin_size=None, Ns_aft=Ns_aft, filter_sigma=None)
+    # LSCI_pipeline(data_path, save_path, bin_size=None, filter_sigma=2, correct_motion=False)

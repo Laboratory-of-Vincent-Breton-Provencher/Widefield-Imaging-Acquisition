@@ -53,7 +53,7 @@ def dHb_pipeline(data_path:str, save_path:str, preprocess:bool=True, regress:boo
     """
     if preprocess:
         # process green
-        green = np.loadtxt(data_path + "\\530.csv", skiprows=1, delimiter=',')[:,1]
+        green = np.loadtxt(data_path + "\\530_3.csv", skiprows=1, delimiter=',')[:,1]
         green_t = np.load(data_path + "\\530ts.npy")
         print("Green data loaded")
         green = prepToComputeTS(green, green_t, regress)
@@ -62,7 +62,7 @@ def dHb_pipeline(data_path:str, save_path:str, preprocess:bool=True, regress:boo
         print("Green data saved")
 
         # process red    
-        red = np.loadtxt(data_path + "\\625.csv", skiprows=1, delimiter=',')[:,1]
+        red = np.loadtxt(data_path + "\\625_3.csv", skiprows=1, delimiter=',')[:,1]
         red_t = np.load(data_path + "\\625ts.npy")
         print("Red data loaded")
         red = prepToComputeTS(red, red_t, regress)
@@ -82,13 +82,14 @@ def dHb_pipeline(data_path:str, save_path:str, preprocess:bool=True, regress:boo
         Hb = gaussian_filter(Hb, sigma=filter_sigma, axes=(1)) # Vérifier axe
 
     # save processed data
-    np.save(save_path + "\\computedHb_ts.npy", Hb)
+    np.save(save_path + "\\computedHb_ts_3.npy", Hb)
     print("Done")
 
 if __name__ == "__main__":
-    root = Tk()
-    root.withdraw()
-    data_path = filedialog.askdirectory()
+    # root = Tk()
+    # root.withdraw()
+    # data_path = filedialog.askdirectory()
+    data_path = r"D:\ggermain\2025-04-02_opto5s\2_rideau_ouvert"
     save_path = data_path
     
-    dHb_pipeline(data_path, save_path, filter_sigma=True)
+    dHb_pipeline(data_path, save_path, filter_sigma=1)
