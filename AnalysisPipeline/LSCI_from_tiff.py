@@ -128,7 +128,7 @@ def LSCI_pipeline(data_path:str, save_path:str, event_timestamps:list=None, Ns_a
                 pass
             np.save(save_path + "\\computed_npy\\LSCI\\computedLSCI_trial{}.npy".format(trial_idx+1), data)
             # save as tiff
-            print("Saving processed Hb")
+            print("Saving processed LSCI")
             try:
                 os.mkdir(save_path + "\\LSCI")
             except FileExistsError:
@@ -141,20 +141,20 @@ def LSCI_pipeline(data_path:str, save_path:str, event_timestamps:list=None, Ns_a
 #%%
 
 if __name__ == "__main__":
-    # root = Tk()
-    # root.withdraw()
-    # data_path = filedialog.askdirectory()
-    data_path = r"D:\ggermain\2025-04-02_opto5s\2_rideau_ouvert"
+    root = Tk()
+    root.withdraw()
+    data_path = filedialog.askdirectory()
+    # data_path = r"D:\ggermain\2025-04-02_opto5s\2_rideau_ouvert"
     save_path = data_path
 
-    # AP_times = np.load(r"AnalysisPipeline\Air_puff_timestamps.npy")
+    AP_times = np.load(r"AnalysisPipeline\Air_puff_timestamps.npy")
     # attente = 30
     # stim = 5 #int(input("Duration of opto stim(to create adequate timestamps)"))
     # opto_stims = np.arange(attente, 1000, attente+stim)
-    # Ns_aft = 15 #int(input("Seconds to analyze after onset of opto stim (trying to gte back to baseline)"))
+    Ns_aft = 15 #int(input("Seconds to analyze after onset of opto stim (trying to gte back to baseline)"))
 
     # Analysis not by trial
-    LSCI_pipeline(data_path, save_path, preprocess=True, correct_motion=False, bin_size=None, filter_sigma=1.5)
+    # LSCI_pipeline(data_path, save_path, preprocess=True, correct_motion=False, bin_size=None, filter_sigma=1.5)
 
     # Analysis by trial
-    # LSCI_pipeline(data_path, save_path, bin_size=None, filter_sigma=2, correct_motion=False)
+    LSCI_pipeline(data_path, save_path, AP_times, Ns_aft=7, bin_size=None, filter_sigma=2, correct_motion=False)

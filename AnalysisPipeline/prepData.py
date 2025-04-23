@@ -123,7 +123,7 @@ def save_as_tiff(frames, data_type, save_path):
         save_path (str): folder to save data
     """
     for idx, frame in tqdm(enumerate(frames)):
-        im = Image.fromarray(frame, mode='I;16')
+        im = Image.fromarray(frame)#, mode='I;16')
         im.save(save_path + "\\{}.tiff".format(data_type + str(idx+0)), "TIFF")                                # changer idx
 
 

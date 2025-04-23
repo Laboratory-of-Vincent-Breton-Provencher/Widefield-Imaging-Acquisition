@@ -258,4 +258,4 @@ if __name__ == "__main__":
     # dHb_pipeline(data_path, save_path, preprocess=False, bin_size=None, nFrames=500)
 
     # Analysis by trial
-    dHb_pipeline(data_path, save_path, AP_times, bin_size=2, Ns_aft=Ns_aft, filter_sigma=None)
+    dHb_pipeline(data_path, save_path, AP_times, bin_size=2, Ns_aft=7, filter_sigma=None)
