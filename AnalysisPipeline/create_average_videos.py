@@ -13,7 +13,7 @@ files_list = identify_files(path, ".tiff")
 
 
 for idx_t in tqdm(range(100)):
-    files = files_list[idx_t::100]
+    files = files_list[idx_t::100]    # prend un frame sur 100 dans le dossier parce qu'il y a 100 frames par trial
     
     for idx, file in enumerate(files):
         frame = tff.TiffFile(file).asarray()

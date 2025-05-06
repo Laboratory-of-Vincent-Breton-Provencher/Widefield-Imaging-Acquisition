@@ -147,7 +147,10 @@ if __name__ == "__main__":
     # data_path = r"D:\ggermain\2025-04-02_opto5s\2_rideau_ouvert"
     save_path = data_path
 
+    # Airpuffs
     AP_times = np.load(r"AnalysisPipeline\Air_puff_timestamps.npy")
+    
+    # Optogénétique
     # attente = 30
     # stim = 5 #int(input("Duration of opto stim(to create adequate timestamps)"))
     # opto_stims = np.arange(attente, 1000, attente+stim)

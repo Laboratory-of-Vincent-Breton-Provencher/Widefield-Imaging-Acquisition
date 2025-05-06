@@ -1,3 +1,7 @@
+## Code pour générer des figures avec plusieurs rasters et les signauc moyens. Attention, peu robuste, plusieurs paramètres à changer 
+## à la mains. Surveiller commentaires "# changer"
+
+
 #%%
 from matplotlib import pyplot as plt
 from matplotlib import colormaps as clm
@@ -17,6 +21,8 @@ from tqdm import tqdm
 stim_dur = 5 #0.05
 first_stim = 30 # optogenetics
 # first_stim = 12.01  # Air puffs
+
+
 data_path = r"D:\ggermain\2025-04-02_opto5s\1" 
 # data_path = r"D:\ggermain\2024-09-17_air_puffs"
 # data_path = r"D:\\ggermain\\2025-03-21_opto2s\\1_whiskerpad"            # expérience: date, essai

@@ -1,3 +1,5 @@
+# Code utilisé par Gabrielle Germain pour générer une figure qui montre l'effet de la correction du mouvement
+
 import numpy as np
 import ants
 import matplotlib.pyplot as plt

@@ -1,9 +1,13 @@
+## Code pour générer des figures avec plusieurs rasters et les signauc moyens. Attention, peu robuste, plusieurs paramètres à changer 
+## à la mains. Surveiller commentaires "# changer"
+
 #%%
 from matplotlib import pyplot as plt
 from matplotlib import colormaps as clm
 import numpy as np
 from scipy.stats import sem
 from scipy.ndimage import median_filter
+from scipy.ndimage import gaussian_filter
 import seaborn as sns
 import seaborn_image as snsi
 import cmcrameri.cm as cmc
@@ -21,9 +25,9 @@ def normalise(data):
 #%% --- open data ---
 
 attente = 30
-stim_dur = 5                        # changer
+stim_dur = 5             # changer
 Ns_bef = 3
-Ns_aft = 13
+Ns_aft = 20
 freq = 50
 
     # all
@@ -31,19 +35,22 @@ freq = 50
 # cols = ("tab:green", "tab:red", "tab:blue", "darkred", "tab:purple", "tab:orange", "royalblue")
 # cmaps = (clm['Greens_r'], clm['Reds_r'], clm['Blues_r'], clm['Reds_r'], clm["Purples_r"], clm["Oranges_r"], clm['Blues_r'])
     # vasc
-# titles = ("HbO", "HbR", "HbT", "LSCI", "Face motion", "Pupil")
-# cols = ("tab:red", "tab:blue", "darkred", "tab:purple", "tab:orange", "royalblue")
-# cmaps = (clm['Reds_r'], clm['Blues_r'], clm['Reds_r'], clm["Purples_r"], clm["Oranges_r"], clm['Blues_r'])
+titles = ("HbO", "HbR", "HbT", "LSCI")#, "Face motion", "Pupil")
+cols = ("tab:red", "tab:blue", "darkred", "tab:purple", "tab:orange", "royalblue")
+cmaps = (clm['Reds_r'], clm['Blues_r'], clm['Reds_r'], clm["Purples_r"], clm["Oranges_r"], clm['Blues_r'])
     # GCAMP + HBT + face
-titles = ("GCaMP", "HbT",  "Face motion", "Pupil")
-cols = ("tab:green",  "darkred",  "tab:orange", "royalblue")
-cmaps = (clm['Greens_r'], clm['Reds_r'], clm["Oranges_r"], clm['Blues_r'])
+# titles = ("GCaMP", "HbT",  "Face motion", "Pupil")
+# cols = ("tab:green",  "darkred",  "tab:orange", "royalblue")
+# cmaps = (clm['Greens_r'], clm['Reds_r'], clm["Oranges_r"], clm['Blues_r'])
 
-event_times = np.arange(attente, 2000, attente+stim_dur)              # if opto
+
+## Optogénétique
+event_times = np.arange(attente, 2000, attente+stim_dur)
 first_stim = 30 
 
+## Airpuffs
 # event_times = np.load(r"C:\Users\gabri\Documents\Université\Maitrise\Projet\Widefield-Imaging-Acquisition\AnalysisPipeline\Air_puff_timestamps.npy")        # if airpuffs
-# first_stim = 12.01  # Air puffs
+# first_stim = 12.01
 
 
 # path = r"D:\ggermain\2024-09-17_air_puffs"
@@ -53,20 +60,20 @@ first_stim = 30
 path = r"D:\ggermain\2025-04-02_opto5s\2_rideau_ouvert"
 
 
-gcamp = np.loadtxt(os.path.join(path, "470_3.csv"), skiprows=1, delimiter=',', usecols=1) - np.loadtxt(os.path.join(path, "405_3.csv"), skiprows=1, delimiter=',', usecols=1)
-# gcamp = np.loadtxt(os.path.join(path, "470_3.csv"), skiprows=1, delimiter=',', usecols=1)           # 17 sept
-HbO, HbR, HbT = np.load(os.path.join(path, "computedHb_ts_3.npy"))
-LSCI = np.loadtxt(os.path.join(path, "LSCI_3.csv"), skiprows=1, usecols=1, delimiter=',') - np.loadtxt(os.path.join(path, "LSCI_static.csv"), skiprows=1, usecols=1, delimiter=',')
+# gcamp = np.loadtxt(os.path.join(path, "470.csv"), skiprows=1, delimiter=',', usecols=1) - np.loadtxt(os.path.join(path, "405.csv"), skiprows=1, delimiter=',', usecols=1)
+# gcamp = np.loadtxt(os.path.join(path, "470.csv"), skiprows=1, delimiter=',', usecols=1)           # 17 sept, pas de correction isobestique 405 nm
+HbO, HbR, HbT = np.load(os.path.join(path, "computedHb_ts.npy"))
+LSCI = np.loadtxt(os.path.join(path, "LSCI.csv"), skiprows=1, usecols=1, delimiter=',') - np.loadtxt(os.path.join(path, "LSCI_static.csv"), skiprows=1, usecols=1, delimiter=',')
 
-face_motion = median_filter(np.load(os.path.join(path, "face_motion.npy"), allow_pickle=True), size=5)
-pupil = median_filter(np.load(os.path.join(path, "pupil.npy"), allow_pickle=True).item()['pupil'][0]['area_smooth'], size=5)
+# face_motion = median_filter(np.load(os.path.join(path, "face_motion.npy"), allow_pickle=True), size=5)
+# pupil = median_filter(np.load(os.path.join(path, "pupil.npy"), allow_pickle=True).item()['pupil'][0]['area_smooth'], size=5)
 
 # all
 # unaligned_data = [gcamp, HbO, HbR, HbT, LSCI, face_motion, pupil]                      # changer
 # vasc
-# unaligned_data = [HbO, HbR, HbT, LSCI]
+unaligned_data = [HbO, HbR, HbT, LSCI]
 # gcamp + hbt + face
-unaligned_data = [gcamp, HbT, face_motion, pupil]
+# unaligned_data = [gcamp, HbT, face_motion]#, pupil]
 
 
 timestamps_wf = np.sort(np.load(path + "\\470ts.npy"))
@@ -84,17 +91,16 @@ event_times = event_times[0:last_event] # always skip last event, most of the ti
 
 
 
-timestamps = [timestamps_wf, timestamps_wf, timestamps_bh, timestamps_bh]            # changer
+timestamps = [timestamps_wf, timestamps_wf, timestamps_wf, timestamps_wf] #timestamps_bh, timestamps_bh]            # changer
 
 
 #%% --- sort and align data ---
 
 sigs = []
 for idx_d, data in enumerate(unaligned_data):
-    
     for idx_e, event in enumerate(event_times):
         
-        if idx_d == 2 or idx_d == 3:      # behavior                  #changer
+        if idx_d == 4 or idx_d == 5:      # behavior, mettre indice pour data behavior seulement                  #changer
             Nf_bef = Ns_bef*freq
             Nf_aft = Ns_aft*freq
             if idx_e == 0:
@@ -107,13 +113,12 @@ for idx_d, data in enumerate(unaligned_data):
             if idx_e == 0:
                 sig = np.zeros([len(event_times), (Nf_bef+Nf_aft)])
             stim_idx = np.argmin(np.absolute(timestamps_wf-event))
-            # print(timestamps_wf[stim_idx-Nf_bef:stim_idx+Nf_aft])
         data_stim = data[stim_idx-Nf_bef:stim_idx+Nf_aft]
         data_stim = normalise(data_stim)
+
         sig[idx_e,:] = data_stim
 
     sigs.append(sig)
-
 
 
 #%%
@@ -123,7 +128,7 @@ timestamps_bh = timestamps_bh[(np.argmin(np.absolute(timestamps_bh-first_stim)))
 timestamps_bh -= first_stim
 
 
-timestamps = [timestamps_wf, timestamps_wf, timestamps_bh, timestamps_bh]              # changer
+timestamps = [timestamps_wf, timestamps_wf, timestamps_wf, timestamps_wf] #timestamps_bh, timestamps_bh]              # changer
 
 
 #%% --- figure ---
@@ -152,7 +157,7 @@ for idx, (sig, col, title, timestamp) in enumerate(zip(sigs, cols, titles, times
 
     ax = plt.subplot(len(sigs), 2, 2*idx+2)
     ax.set_title(title)
-    ax.fill_between((0, stim_dur), 0, 1, color="grey", alpha=0.2, label="stim")   # opto seulement
+    ax.fill_between((0, stim_dur), 0, 1, color="grey", alpha=0.2, label="stim")                      # opto seulement
     ax.plot(timestamp, avg_data, color=col)
     ax.fill_between(timestamp, avg_data-std_data, avg_data+std_data, color=col, alpha=0.2)
     ax.set_xlim(timestamp[0], timestamp[-1])
@@ -167,7 +172,7 @@ for idx, (sig, col, title, timestamp) in enumerate(zip(sigs, cols, titles, times
 sns.despine()
 plt.tight_layout()
 # plt.savefig("name.png", dpi=600)
-plt.savefig("04-02_ouvert_varie.svg")
-# plt.show()
+# plt.savefig("03-21_pupil_vasc.svg")
+plt.show()
 
 # %%

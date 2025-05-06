@@ -8,6 +8,13 @@ import os
 
 
 def motion_energy(video_path, avi_name):
+    """Extait le motion energy du visage de la souris. Voir exemple pour tracer le ROI 
+    (du coin inférieur de l'oeil jusqu'à l'etérieur de la bouche). enregistre les données dans un fichier .npy
+
+    Args:
+        video_path (_type_): chemin du dossier contenant le vidéo
+        avi_name (_type_): nom du fichier vidéo
+    """
 
     cap = cv2.VideoCapture(os.path.join(video_path, avi_name))
     video_length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))

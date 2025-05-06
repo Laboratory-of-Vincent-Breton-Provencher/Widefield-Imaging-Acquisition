@@ -1,3 +1,5 @@
+# Code modifié d'un script original du laboratoire de Michèle Desjardins
+
 import os
 import numpy as np
 from scipy.interpolate import interp1d

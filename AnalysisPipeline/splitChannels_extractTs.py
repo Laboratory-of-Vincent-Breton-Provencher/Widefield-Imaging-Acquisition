@@ -80,8 +80,6 @@ root.withdraw()
 folderPath = filedialog.askdirectory()
 
 
-
-
 if splitChannels:
     print("--- Split channels ---")
     print("Sorting data")

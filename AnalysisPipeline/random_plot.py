@@ -1,3 +1,5 @@
+# Code utilisé par Gabrielle Germain pour générer diverses figures pour son mémoire
+
 #%%
 import numpy as np
 import matplotlib.pyplot as plt
@@ -133,7 +135,7 @@ def normalise(data):
 
 #%% --- 4 rois air puffs ---
 
-titles = ("HbO", "HbR", "HbT", "LSCI")
+titles = ("HbO", "HbR", "HbT", "LSCI", "GCaMP")
 cols = ("tab:blue", "tab:red", "tab:green")
 rois = ("veine", "artériole", "parenchyme")
  
@@ -146,7 +148,7 @@ path = r"D:\ggermain\2024-09-17_air_puffs"
 event_times = np.load(r"C:\Users\gabri\Documents\Université\Maitrise\Projet\Widefield-Imaging-Acquisition\AnalysisPipeline\Air_puff_timestamps.npy")        # if airpuffs
 first_stim = 12.01  # Air puffs
 
-fig, axs = plt.subplots(4, 1, figsize=(6, 6))
+fig, axs = plt.subplots(5, 1, figsize=(6, 6))
 sns.set_context('notebook')
 
 Nf_bef = Ns_bef*(freq//5)
@@ -158,8 +160,9 @@ for N in range(3):
 
     HbO, HbR, HbT = np.load(os.path.join(path, "computedHb_ts_{}.npy".format(N)))
     LSCI = np.loadtxt(os.path.join(path, "LSCI_{}.csv".format(N)), usecols=1, skiprows=1, delimiter=',').transpose() - np.loadtxt(os.path.join(path, "LSCI_static.csv".format(N)), usecols=1, skiprows=1, delimiter=',').transpose()
+    gcamp = np.loadtxt(os.path.join(path, "470_{}.csv".format(N)), usecols=1, skiprows=1, delimiter=',').transpose()
     ts = np.load(os.path.join(path, "470ts.npy"))
-    unaligned_data = [HbO, HbR, HbT, LSCI]
+    unaligned_data = [HbO, HbR, HbT, LSCI, gcamp]
 
     sigs = []
     for idx_d, data in enumerate(unaligned_data):
@@ -178,13 +181,14 @@ for N in range(3):
     for idx, (sig, title) in enumerate(zip(sigs, titles)):
         avg_data = np.mean(sig, axis=0)
         std_data = sem(sig, axis=0)
-        if idx == 0 or idx == 2 or idx == 3:
-            print(titles[idx], "lag: ", ts[np.argmax(avg_data)], ' s')
 
         if idx == 1:
             print(titles[idx], "lag: ", ts[np.argmin(avg_data)], ' s')
         
-        ax = plt.subplot(4, 1, idx+1)
+        else:
+            print(titles[idx], "lag: ", ts[np.argmax(avg_data)], ' s')
+
+        ax = plt.subplot(5, 1, idx+1)
         ax.set_title(titles[idx])
         ax.plot(ts, avg_data, label=rois[N-1], color=cols[N-1])
         ax.fill_between(ts, avg_data-std_data, avg_data+std_data, color=cols[N-1], alpha=0.2)
@@ -192,14 +196,15 @@ for N in range(3):
             ax.legend(loc='right')
         ax.set_yticklabels([])
         ax.set_yticks([])
-        if idx == 3:
+        if idx == 4:
             ax.set_xlabel("time [s]", fontsize=12)
-        if idx == 1:
+        if idx == 2:
             ax.set_ylabel("signal intensity [normalised]", fontsize=12)
         ax.set_xlim(ts[0], ts[-1])
 
 sns.despine()
 plt.tight_layout()
-plt.savefig("09-17_airpuffs_rois.svg")
-# plt.show()
+# plt.savefig("09-17_airpuffs_rois_v2.svg")
+# plt.savefig("09-17_airpuffs_rois.png", dpi=600)
+plt.show()
 # %%

@@ -86,10 +86,10 @@ def dHb_pipeline(data_path:str, save_path:str, preprocess:bool=True, regress:boo
     print("Done")
 
 if __name__ == "__main__":
-    # root = Tk()
-    # root.withdraw()
-    # data_path = filedialog.askdirectory()
-    data_path = r"D:\ggermain\2025-04-02_opto5s\2_rideau_ouvert"
+    root = Tk()
+    root.withdraw()
+    data_path = filedialog.askdirectory()
+    # data_path = r"D:\ggermain\2024-09-17_air_puffs"
     save_path = data_path
     
     dHb_pipeline(data_path, save_path, filter_sigma=1)
