@@ -151,10 +151,4 @@ if extractTs:
 
             # print(ts)
             # Save time stamps
-            np.save(os.path.join(folderPath, flagName[4:7]) + 'ts.npy',ts)
-            print('Timestamps file was created for folder {}'.format(flagName[4:7]))
-
-
-#%% if GUI
-# if __name__ == '__main__':
-#     window.mainloop()
+      

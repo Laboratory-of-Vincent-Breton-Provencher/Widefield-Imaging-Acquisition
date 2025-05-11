@@ -62,26 +62,26 @@ def dHb_pipeline(data_path:str, save_path:str, event_timestamps:list=None, Ns_af
         if preprocess:
             # process green
             print("Loading green data")
-            green = create_npy_stack(data_path + "\\530", data_path, 530, saving=False, nFrames=nFrames)
+            green = create_npy_stack(os.path.join(data_path, "530"), data_path, 530, saving=False, nFrames=nFrames)
             # green = np.load(data_path + "\\530_rawStack.npy")
             green = prepToCompute(green, correct_motion=correct_motion, bin_size=bin_size, regress=regress)
-            np.save(data_path + "\\530_preprocessed.npy", green)
+            np.save(os.path.join(data_path, "530_preprocessed.npy"), green)
             green = None
             print("Green data preprocessed and saved")
 
             # process red
             print("Loading red data")
-            red = create_npy_stack(data_path + "\\625", data_path, 625, saving=False, nFrames=nFrames)
+            red = create_npy_stack(os.path.join(data_path, "625"), data_path, 625, saving=False, nFrames=nFrames)
             # red = np.load(data_path + "\\625_rawStack.npy")
             red = prepToCompute(red, correct_motion=correct_motion, bin_size=bin_size, regress=regress)
-            np.save(data_path + "\\625_preprocessed.npy", red)
+            np.save(os.path.join(data_path, "625_preprocessed.npy"), red)
             red = None
             print("Red data preprocessed and saved")
 
         # convert to hb
         print("Converting to dHb")
-        green = np.load(data_path + "\\530_preprocessed.npy")
-        red = np.load(data_path + "\\625_preprocessed.npy")
+        green = np.load(os.path.join(data_path, "530_preprocessed.npy"))
+        red = np.load(os.path.join(data_path, "625_preprocessed.npy"))
         d_HbO, d_HbR = convertToHb(green, red)
         d_HbT = d_HbO+d_HbR
         # resample pixel values
@@ -95,16 +95,16 @@ def dHb_pipeline(data_path:str, save_path:str, event_timestamps:list=None, Ns_af
             print(Hb.shape)
             Hb = gaussian_filter(Hb, sigma=filter_sigma, axes=(1))  # axe 1 parce 0 est le type de data
         # save processed data as npy
-        np.save(save_path + "\\computedHb.npy", Hb)
+        np.save(os.path.join(data_path, "computedHb.npy"), Hb)
         # save as tiff
         print("Saving processed Hb")
         data_types = ['HbO', 'HbR', 'HbT']
-        for frames, typpe in zip(Hb, data_types):
+        for frames, type in zip(Hb, data_types):
             try:
-                os.mkdir(save_path + "\\"  + typpe)
+                os.mkdir(os.path.join(save_path, type))
             except FileExistsError:
                 print("Folder already created")
-            save_as_tiff(frames, typpe, save_path + "\\" + typpe)
+            save_as_tiff(frames, type, os.path.join(save_path, type))
 
         print("Done")
 
@@ -118,26 +118,26 @@ def dHb_pipeline(data_path:str, save_path:str, event_timestamps:list=None, Ns_af
             if preprocess:
                 # process green
                 print("Loading green data")
-                green = create_npy_stack(data_path + "\\530", data_path, 530, saving=False, cutAroundEvent=files_by_trial_g[trial_idx])
+                green = create_npy_stack(os.path.join(data_path, "530"), data_path, 530, saving=False, cutAroundEvent=files_by_trial_g[trial_idx])
                 # green = np.load(data_path + "\\530_rawStack.npy")
                 green = prepToCompute(green, correct_motion=correct_motion, bin_size=bin_size, regress=regress)
-                np.save(data_path + "\\530_preprocessed.npy", green)
+                np.save(os.path.join(data_path, "530_preprocessed.npy"), green)
                 green = None
                 print("Green data preprocessed and saved")
 
                 # process red
                 print("Loading red data")
-                red = create_npy_stack(data_path + "\\625", data_path, 625, saving=False, cutAroundEvent=files_by_trial_r[trial_idx])
+                red = create_npy_stack(os.path.join(data_path, 625), data_path, 625, saving=False, cutAroundEvent=files_by_trial_r[trial_idx])
                 # red = np.load(data_path + "\\625_rawStack.npy")
                 red = prepToCompute(red, correct_motion=correct_motion, bin_size=bin_size, regress=regress)
-                np.save(data_path + "\\625_preprocessed.npy", red)
+                np.save(os.path.join(data_path, "625_preprocessed.npy"), red)
                 red = None
                 print("Red data preprocessed and saved")
 
             # convert to hb
             print("Converting to dHb")
-            green = np.load(data_path + "\\530_preprocessed.npy")
-            red = np.load(data_path + "\\625_preprocessed.npy")
+            green = np.load(os.path.join(data_path, "530_preprocessed.npy"))
+            red = np.load(os.path.join(data_path, "625_preprocessed.npy"))
             d_HbO, d_HbR = convertToHb(green, red)
             d_HbT = d_HbO+d_HbR
             # resample pixel values
@@ -151,23 +151,23 @@ def dHb_pipeline(data_path:str, save_path:str, event_timestamps:list=None, Ns_af
                 Hb = gaussian_filter(Hb, sigma=filter_sigma, axes=(1))  # axe 1 parce 0 est le type de data
             # save processed data as npy
             try:
-                os.mkdir(save_path + "\\computed_npy")
+                os.mkdir(os.path.join(save_path, "computed_npy"))
             except FileExistsError:
                 pass
             try:
-                os.mkdir(save_path + "\\computed_npy\\Hb")
+                os.mkdir(os.path.join(save_path, "computed_npy", "Hb"))
             except FileExistsError:
                 pass
-            np.save(save_path + "\\computed_npy\\Hb\\computedHb_trial{}.npy".format(trial_idx+1), Hb)
+            np.save(os.path.join(save_path, "computed_npy", "Hb", "computedHb_trial{}.npy".format(trial_idx+1)), Hb)
             # save as tiff
             print("Saving processed Hb")
             data_types = ['HbO', 'HbR', 'HbT']
-            for frames, typpe in zip(Hb, data_types):
+            for frames, type in zip(Hb, data_types):
                 try:
-                    os.mkdir(save_path + "\\"  + typpe)
+                    os.mkdir(os.path.join(save_path, type))
                 except FileExistsError:
                     print("Folder already created")
-                save_as_tiff(frames, typpe + "_trial{}_".format(trial_idx+1), save_path + "\\" + typpe)
+                save_as_tiff(frames, type + "_trial{}_".format(trial_idx+1), os.path.join(save_path, type))
 
             print("----Done with trial {}".format(trial_idx+1))
 
@@ -182,7 +182,7 @@ if __name__ == "__main__":
     save_path = data_path
 
     # Airpuffs
-    AP_times = np.load(r"AnalysisPipeline\Air_puff_timestamps.npy")
+    #AP_times = np.load(r"AnalysisPipeline\Air_puff_timestamps.npy")
     
     # Optogénétique
     # attente = 30
@@ -194,4 +194,5 @@ if __name__ == "__main__":
     # dHb_pipeline(data_path, save_path, preprocess=False, bin_size=None, nFrames=500)
 
     # Analysis by trial
-    dHb_pipeline(data_path, save_path, AP_times, bin_size=2, Ns_aft=7, filter_sigma=None)
+    dHb_pipeline(data_path, save_path, event_timestamps=None, bin_size=2, nFrames=None, preprocess=True, filter_sigma=2)
+

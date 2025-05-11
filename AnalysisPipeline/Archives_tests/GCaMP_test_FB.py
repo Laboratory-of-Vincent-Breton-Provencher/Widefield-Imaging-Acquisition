@@ -15,7 +15,7 @@ print("Stack shape:", stack.shape)
 fig_anim, ax_anim = plt.subplots()
 frame_display = ax_anim.imshow(stack[0], cmap='viridis', vmin=stack.min(), vmax=stack.max())
 frame_number = ax_anim.text(5, 5, "Frame 0", color='white', fontsize=12)
-plt.title("Animation GCaMP (ferme cette fenêtre pour continuer)")
+plt.title("Animation GCaMP")
 
 def update(frame):
     frame_display.set_data(stack[frame])
