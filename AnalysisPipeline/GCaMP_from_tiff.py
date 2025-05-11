@@ -7,7 +7,6 @@ from scipy.stats import zscore
 from prepData import create_npy_stack, prepToCompute, resample_pixel_value, save_as_tiff, create_list_trials
 
 
-
 def GCaMP_pipeline(data_path:str, save_path:str, event_timestamps:list=None, Ns_aft:int=10,  preprocess:bool=True, isosbectic:bool=True, nFrames:int=None,  correct_motion:bool=True, bin_size:int=2, regress:bool=False, filter_sigma:float=2):
     """ Analysis pipeline to process raw frames into neuronal activity GCaMP. Saves processed tiff files as well as
         the numpy 3D array containing the data.
@@ -30,29 +29,29 @@ def GCaMP_pipeline(data_path:str, save_path:str, event_timestamps:list=None, Ns_
         if preprocess:
             # process blue
             print("Loading blue data")
-            blue = create_npy_stack(data_path + "\\470", data_path, 470, saving=False, nFrames=nFrames)
+            blue = create_npy_stack(os.path.join(data_path, "470"), data_path, 470, saving=False, nFrames=nFrames)
             blue = prepToCompute(blue, correct_motion=correct_motion, bin_size=bin_size, regress=regress)
-            np.save(data_path + "\\470_preprocessed.npy", blue)
+            np.save(os.path.join(data_path, "470_preprocessed.npy"), blue)
             blue = None
             print("Blue data preprocessed and saved")
 
             # process purple
             if isosbectic:
                 print("Loading purple data")
-                purple = create_npy_stack(data_path + "\\405", data_path, 405, saving=False, nFrames=nFrames)
+                purple = create_npy_stack(os.path.join(data_path, "405"), data_path, 405, saving=False, nFrames=nFrames)
                 purple = prepToCompute(purple, correct_motion=correct_motion, bin_size=bin_size, regress=regress)
-                np.save(data_path + "\\405_preprocessed.npy", purple)
+                np.save(os.path.join(data_path, "405_preprocessed.npy"), purple)
                 purple = None
                 print("Purple data preprocessed and saved")
 
         # convert to neuronal activity
         print("Converting to neuronal activity")
-        blue = np.load(data_path + "\\470_preprocessed.npy")
+        blue = np.load(os.path.join(data_path, "470_preprocessed.npy"))
         if isosbectic:
-            purple = np.load(data_path + "\\405_preprocessed.npy")
+            purple = np.load(os.path.join(data_path, "405_preprocessed.npy"))
 
         if isosbectic:
-            d_gcamp = zscore(blue-purple, axis=0)
+            d_gcamp = zscore(blue - purple, axis=0)
 
         else:
             d_gcamp = zscore(blue, axis=0)
@@ -64,17 +63,17 @@ def GCaMP_pipeline(data_path:str, save_path:str, event_timestamps:list=None, Ns_
             print("Filtering")
             d_gcamp = gaussian_filter(d_gcamp, sigma=filter_sigma, axes=(0))
         # save processed data as npy
-        np.save(save_path + "\\computedGCaMP.npy", d_gcamp)
+        np.save(os.path.join(save_path, "computedGCaMP.npy"), d_gcamp)
         # save as tiff
         print("Saving processed GCaMP")
- 
         try:
-            os.mkdir(save_path + test)
+            os.mkdir(os.path.join(save_path, "GCaMP"))
         except FileExistsError:
             print("Folder already created")
-        save_as_tiff(d_gcamp, "GCaMP", save_path + "\\GCaMP")
+        save_as_tiff(d_gcamp, "GCaMP", os.path.join(save_path, "GCaMP"))
 
         print("Done")
+
 #%% trial wise
     # Analyse des essais un à la fois (air puffs, optogen.) plus long, mais risque moins de buster la ram
     else:
@@ -83,33 +82,33 @@ def GCaMP_pipeline(data_path:str, save_path:str, event_timestamps:list=None, Ns_
         if isosbectic:
             files_by_trial_p = create_list_trials(data_path, 405, event_timestamps, skip_last=True, Ns_aft=Ns_aft)
 
-        for trial_idx in range(len(files_by_trial_b)):       
+        for trial_idx in range(len(files_by_trial_b)):
             if preprocess:
                 # process blue
                 print("Loading blue data")
-                blue = create_npy_stack(data_path + "\\470", data_path, 470, saving=False, cutAroundEvent=files_by_trial_b[trial_idx])
+                blue = create_npy_stack(os.path.join(data_path, "470"), data_path, 470, saving=False, cutAroundEvent=files_by_trial_b[trial_idx])
                 blue = prepToCompute(blue, correct_motion=correct_motion, bin_size=bin_size, regress=regress)
-                np.save(data_path + "\\470_preprocessed.npy", blue)
+                np.save(os.path.join(data_path, "470_preprocessed.npy"), blue)
                 blue = None
                 print("Blue data preprocessed and saved")
 
                 if isosbectic:
                     # process purple
                     print("Loading purple data")
-                    purple = create_npy_stack(data_path + "\\405", data_path, 405, saving=False, cutAroundEvent=files_by_trial_p[trial_idx])
+                    purple = create_npy_stack(os.path.join(data_path, "405"), data_path, 405, saving=False, cutAroundEvent=files_by_trial_p[trial_idx])
                     purple = prepToCompute(purple, correct_motion=correct_motion, bin_size=bin_size, regress=regress)
-                    np.save(data_path + "\\405_preprocessed.npy", purple)
+                    np.save(os.path.join(data_path, "405_preprocessed.npy"), purple)
                     purple = None
                     print("Purple data preprocessed and saved")
 
             # convert to neuronal activity
             print("Converting to dHb")
-            blue = np.load(data_path + "\\470_preprocessed.npy")
+            blue = np.load(os.path.join(data_path, "470_preprocessed.npy"))
             if isosbectic:
-                purple = np.load(data_path + "\\405_preprocessed.npy")
+                purple = np.load(os.path.join(data_path, "405_preprocessed.npy"))
 
             if isosbectic:
-                d_gcamp = zscore(blue-purple, axis=0)
+                d_gcamp = zscore(blue - purple, axis=0)
 
             else:
                 d_gcamp = zscore(blue, axis=0)
@@ -124,25 +123,27 @@ def GCaMP_pipeline(data_path:str, save_path:str, event_timestamps:list=None, Ns_
 
             # save processed data as npy
             try:
-                os.mkdir(save_path + "\\computed_npy")
+                os.mkdir(os.path.join(save_path, "computed_npy"))
             except FileExistsError:
                 pass
             try:
-                os.mkdir(save_path + "\\computed_npy\\GCaMP")
+                os.mkdir(os.path.join(save_path, "computed_npy", "GCaMP"))
             except FileExistsError:
                 pass
-            np.save(save_path + "\\computed_npy\\GCaMP\\computedGCaMP_trial{}.npy".format(trial_idx+1), d_gcamp)
+            np.save(os.path.join(save_path, "computed_npy", "GCaMP", f"computedGCaMP_trial{trial_idx+1}.npy"), d_gcamp)
+
             # save as tiff
             print("Saving processed GCaMP")
             try:
-                os.mkdir(save_path + "\\GCaMP")
+                os.mkdir(os.path.join(save_path, "GCaMP"))
             except FileExistsError:
                 print("Folder already created")
-            save_as_tiff(d_gcamp, "GCaMP" + "_trial{}_".format(trial_idx+1), save_path + "\\GCaMP")
+            save_as_tiff(d_gcamp, f"GCaMP_trial{trial_idx+1}_", os.path.join(save_path, "GCaMP"))
 
             print("----Done with trial {}".format(trial_idx+1))
 
         print("Done for real now")
+
 #%%
 
 if __name__ == "__main__":
@@ -152,8 +153,8 @@ if __name__ == "__main__":
     save_path = data_path
 
     # Airpuffs
-    AP_times = np.load(r"AnalysisPipeline\Air_puff_timestamps.npy")
-    
+    #AP_times = np.load(r"AnalysisPipeline\Air_puff_timestamps.npy")
+
     # Optogénétique
     # attente = 30
     # stim = 5 #int(input("Duration of opto stim(to create adequate timestamps)"))
@@ -164,5 +165,6 @@ if __name__ == "__main__":
     # GCaMP_pipeline(data_path, save_path, preprocess=False, bin_size=None, nFrames=500)
 
     # Analysis by trial
-    GCaMP_pipeline(data_path, save_path, event_timestamps=AP_times, bin_size=2, Ns_aft=7, isosbectic=False)
-    
+    #GCaMP_pipeline(data_path, save_path, event_timestamps=None, bin_size=2, Ns_aft=7, isosbectic=False)
+
+    GCaMP_pipeline(data_path, save_path, event_timestamps=None, preprocess=True, isosbectic=False, bin_size=2, nFrames=None, correct_motion=True, regress=False, filter_sigma=2)

@@ -26,7 +26,7 @@ def create_list_trialsTS(data_path:str, wl:int, event_times:list, Ns_bef:int=3, 
         list: list of all the time stamps sorted for each trial. Not an array in case the last trial is shorter, but it's useful to change it to an array before use.
     """
 
-    timestamps = np.load(data_path + "\\{}ts.npy".format(wl))
+    timestamps = np.load(os.path.join(data_path, "{}ts.npy".format(wl)))
     max_time = timestamps[-1]
     last_event = np.argmin(np.abs((event_times - max_time)))
     event_times = event_times[0:last_event+1]
@@ -124,7 +124,7 @@ def save_as_tiff(frames, data_type, save_path):
     """
     for idx, frame in tqdm(enumerate(frames)):
         im = Image.fromarray(frame)#, mode='I;16')
-        im.save(save_path + "\\{}.tiff".format(data_type + str(idx+0)), "TIFF")                                # changer idx
+        im.save(os.path.join(save_path, "{}.tiff".format(data_type + str(idx+0))), "TIFF")                                # changer idx
 
 
 def create_list_trials(data_path:str, wl:int, event_times:list, Ns_bef:int=3, Ns_aft:int=10, skip_last:bool=False): 
@@ -142,7 +142,7 @@ def create_list_trials(data_path:str, wl:int, event_times:list, Ns_bef:int=3, Ns
         list: 2 dimensional list that contains the file paths to the frames of every trial
     """
 
-    files_list = identify_files(data_path + "\\{}".format(wl), ".tif")
+    files_list = identify_files(os.path.join(data_path, "{}".format(wl)), ".tif")
     frames_timestamps = np.load(data_path + "\\{}ts.npy".format(wl))
     n_frames = len(files_list)
     max_time = frames_timestamps[n_frames-1]
@@ -201,7 +201,7 @@ def create_npy_stack(folder_path:str, save_path:str,  wl:int, saving=False, nFra
         _3d_stack[idx,:,:] = frame
 
     if saving:
-        np.save(save_path+"\\{}_rawStack.npy".format(wl), _3d_stack)
+        np.save(os.path.join(save_path, "{}_rawStack.npy".format(wl)), _3d_stack)
     return _3d_stack
 
 
