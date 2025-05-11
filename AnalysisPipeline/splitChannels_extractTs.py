@@ -6,9 +6,10 @@ import shutil
 from tqdm import tqdm
 import numpy as np
 import tifffile
+import re  
 
 #%% Functions
-def find_fname(Path:str, extension:str) -> list:
+def find_fname(Path:str, *extensions:str) -> list:
     """Retrieves files with a specific extension in a chosen folder
 
     Args:
@@ -19,24 +20,29 @@ def find_fname(Path:str, extension:str) -> list:
         list: all the files with the chosen extension (not complete path, only file name)
     """
     ls_files = [file for file in os.listdir(Path) if os.path.isfile(os.path.join(Path, file))]
-    fname = [s for s in ls_files if extension in s]
+    fname = [f for f in ls_files if f.lower().endswith(extensions)]
     # if len(fname) > 1:
     #     print('There is more than one {} file in {}'.format(contains,os.path.sep+P))
     #     sys.exit()
     
     return fname
+
+def extract_number(filename):  # sort by numerical order
+    match = re.search(r'\d+', os.path.basename(filename))
+    return int(match.group()) if match else -1
+
 #%%
 
 ## Paramètres: quoi faire et avec quels canaux
 
-splitChannels = 0
+splitChannels = 1
 extractTs = 1
 
-FLAG405 = 0
+FLAG405 = 1
 FLAG470 = 1
-FLAG530 = 0
-FLAG625 = 0
-FLAG785 = 0
+FLAG530 = 1
+FLAG625 = 1
+FLAG785 = 1
 
 
 FLAGS = {"FLAG405":FLAG405, "FLAG470":FLAG470, "FLAG530":FLAG530, "FLAG625":FLAG625, "FLAG785":FLAG785}
@@ -84,8 +90,8 @@ if splitChannels:
     print("--- Split channels ---")
     print("Sorting data")
 
-    filesPaths = [os.path.join(folderPath, file) for file in os.listdir(folderPath)]
-    filesPaths.sort(key=lambda x: os.path.getmtime(x))
+    filesPaths = [os.path.join(folderPath, f) for f in os.listdir(folderPath) if f.lower().endswith(('.tif', '.tiff'))]
+    filesPaths.sort(key=extract_number)
 
 
     j = 0
@@ -111,11 +117,11 @@ if extractTs:
             print("    Working on folder {}".format(flagName[4:7]))
             # Get list of fnames
             print('Getting file names')
-            ls_f = np.array(find_fname(os.path.join(folderPath, flagName[4:7]),'.tif'))
+            ls_f = np.array(find_fname(os.path.join(folderPath, flagName[4:7]), '.tif', '.tiff'))
 
             # Sort list of fnames
             print('Sorting files')
-            idx_f = [int(f[10:f.find('.')]) for f in ls_f]
+            idx_f = [extract_number(f) for f in ls_f]
             idx_sort = np.argsort(idx_f)
             ls_f = ls_f[idx_sort]
 
