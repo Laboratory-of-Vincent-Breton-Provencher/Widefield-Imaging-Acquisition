@@ -31,7 +31,7 @@ if save_video:
     output_path = os.path.splitext(file_path)[0] + "_gcamp.gif"
     print("Enregistrement de la vidéo (.gif)...")
     ani.save(output_path, writer='pillow', fps=10)
-    print(f"✅ Vidéo sauvegardée dans : {output_path}")
+    print(f"Vidéo sauvegardée dans : {output_path}")
 
 # --- Affiche l’animation (bloque jusqu'à fermeture)
 plt.show()
@@ -71,7 +71,7 @@ if roi:
     
     output_png = os.path.splitext(file_path)[0] + "_ROI_signal.png"
     fig_signal.savefig(output_png, dpi=300)
-    print(f"✅ Graphique sauvegardé dans : {output_png}")
+    print(f"Graphique sauvegardé dans : {output_png}")
     plt.show()
 else:
     print("Aucune ROI sélectionnée.")
