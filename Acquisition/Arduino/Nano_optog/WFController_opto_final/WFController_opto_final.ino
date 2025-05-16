@@ -50,6 +50,15 @@ const int NB_FREQ = sizeof(ledBeforeOptoList) / sizeof(ledBeforeOptoList[0]);
 int freqIndex = 0;
 int ledBeforeOpto = ledBeforeOptoList[0]; // Initial value
 
+// --------- Gestion des cycles et acquisition finale ---------
+int NB_CYCLES = 2; // Nombre de répétitions par fréquence
+int freqCounters[NB_FREQ] = {0}; // Compteur pour chaque fréquence
+bool protocolDone = false;
+bool finalAcquisition = false;
+unsigned long finalAcqStart = 0;
+unsigned long finalAcqDuration = 5UL * 60UL * 1000000UL; // 5 minutes en microsecondes
+// ----------------------------------------------------------
+
 void setup() {
   //OUTPUT PINS
   pinMode(CAM, OUTPUT);
@@ -90,6 +99,7 @@ void setup() {
 void loop() {
   timeNow = micros();
 
+  // Si STATUS_ONOFF est LOW, on reset tout
   if (digitalRead(STATUS_ONOFF) == LOW) {
     for (int i = 0; i < NB_LEDS; i++) digitalWrite(LEDS[i], LOW);
     digitalWrite(LEDopto, LOW);
@@ -103,9 +113,71 @@ void loop() {
     lastLEDIndex = 0;
     freqIndex = 0;
     ledBeforeOpto = ledBeforeOptoList[0];
-  } 
-  else if (digitalRead(STATUS_ONOFF) == HIGH) {
-    // Alternate acquisition/stimulation
+    for (int i = 0; i < NB_FREQ; i++) freqCounters[i] = 0;
+    protocolDone = false;
+    finalAcquisition = false;
+    finalAcqStart = 0;
+    return;
+  }
+
+  // --------- MODE ACQUISITION FINALE (5min sans opto) ---------
+  if (protocolDone) {
+    if (!finalAcquisition) {
+      finalAcquisition = true;
+      finalAcqStart = timeNow;
+      // On coupe l'opto
+      digitalWrite(LEDopto, LOW);
+      FLAG_OPTO_ON = 0;
+      FLAG_STIM = 0;
+      ledCounter = 0;
+    }
+
+    // Pendant 5 minutes, on alterne juste les LEDs et la caméra
+    if (timeNow - lastBlink > 1000000/FPS) {
+      int currentLED = -1;
+      for (int i = 0; i < NB_LEDS; i++) {
+        if (digitalRead(LEDS[i]) == HIGH) {
+          currentLED = i;
+          digitalWrite(LEDS[i], LOW);
+          break;
+        }
+      }
+      int nextLED = (currentLED == -1) ? (lastLEDIndex + 1) % NB_LEDS : (currentLED + 1) % NB_LEDS;
+      digitalWrite(LEDS[nextLED], HIGH);
+      lastLEDIndex = nextLED;
+      lastBlink = timeNow;
+      FLAG_CAM = 1;
+    }
+
+    // Déclenchement caméra
+    bool anyLEDOn = false;
+    for (int i = 0; i < NB_LEDS; i++) {
+      if (digitalRead(LEDS[i]) == HIGH) {
+        anyLEDOn = true;
+        break;
+      }
+    }
+    if (anyLEDOn && FLAG_CAM == 1 && (timeNow - lastBlink > camDelay)) {
+      digitalWrite(CAM, HIGH);
+      FLAG_CAM = 0;
+    }
+    if (timeNow - lastBlink > camSig) {
+      digitalWrite(CAM, LOW);
+    }
+
+    // Fin des 5 minutes
+    if (timeNow - finalAcqStart >= finalAcqDuration) {
+      for (int i = 0; i < NB_LEDS; i++) digitalWrite(LEDS[i], LOW);
+      digitalWrite(CAM, LOW);
+      digitalWrite(LEDopto, LOW);
+      // On ne refait plus rien, on reste dans ce mode
+    }
+    return;
+  }
+
+  // --------- MODE PROTOCOLE NORMAL (cycles acquisition/stim/opto) ---------
+  if (digitalRead(STATUS_ONOFF) == HIGH) {
+    // Acquisition/stimulation
     if (FLAG_STIM == 0) {
       if (timeNow - lastStim >= acquTime) {
         FLAG_STIM = 1;
@@ -117,16 +189,29 @@ void loop() {
         lastStim = timeNow;
         ledCounter = 0;
 
-        // Next frequency
+        // Incrémenter le compteur pour la fréquence courante
+        freqCounters[freqIndex]++;
+        // Passer à la fréquence suivante
         freqIndex = (freqIndex + 1) % NB_FREQ;
         ledBeforeOpto = ledBeforeOptoList[freqIndex];
+
+        // Vérifier si toutes les fréquences ont atteint NB_CYCLES
+        bool allDone = true;
+        for (int i = 0; i < NB_FREQ; i++) {
+          if (freqCounters[i] < NB_CYCLES) {
+            allDone = false;
+            break;
+          }
+        }
+        if (allDone) {
+          protocolDone = true;
+        }
       }
     }
 
     // BLINKING LOOP 
     if (timeNow - lastBlink > 1000000/FPS) {
       int currentLED = -1;
-      // Trouver la LED actuellement allumée
       for (int i = 0; i < NB_LEDS; i++) {
         if (digitalRead(LEDS[i]) == HIGH) {
           currentLED = i;
@@ -141,19 +226,16 @@ void loop() {
         FLAG_OPTO_ON = 1;
         OptoLastBlink = timeNow;
         ledCounter = 0;
-        
       } else {
-        // Alterner automatiquement les LEDs en reprenant là où on s'est arrêté
         int nextLED;
         if (currentLED == -1) {
-          // Si aucune LED n'est allumée (après opto), reprendre à la suivante
           nextLED = (lastLEDIndex + 1) % NB_LEDS;
         } else {
           nextLED = (currentLED + 1) % NB_LEDS;
         }
         digitalWrite(LEDS[nextLED], HIGH);
         ledCounter++;
-        lastLEDIndex = nextLED; // Mémorise la dernière LED allumée
+        lastLEDIndex = nextLED;
       }
 
       lastBlink = timeNow;
