@@ -58,6 +58,11 @@ int cycleCounter = 0;   // Compteur de cycles
 bool protocolDone = false;
 // ----------------------------------------------
 
+// --------- Ajout pour acquisition finale ---------
+bool finalAcquisition = false;
+unsigned long finalAcqStart = 0;
+// -----------------------------------------------
+
 void setup() {
   // Serial.begin(19200);   // debugging with analog pin
 
@@ -100,15 +105,33 @@ void setup() {
 void loop() {
   timeNow = micros();
 
-  // Arrêt du protocole après NB_CYCLES
-  if (protocolDone) {
-    for (int i = 0; i < NB_LEDS; i++) digitalWrite(LEDS[i], LOW);
-    digitalWrite(LEDopto, LOW);
-    digitalWrite(CAM, LOW);
-    return;
+  // --------- Gestion acquisition finale ---------
+  if (protocolDone && !finalAcquisition) {
+    // Démarre l'acquisition finale
+    finalAcquisition = true;
+    finalAcqStart = timeNow;
+    FLAG_STIM = 0; // Acquisition mode
+    ledCounter = 0;
+    // Les LEDs vont continuer à clignoter normalement
   }
+  if (protocolDone && finalAcquisition) {
+    // Acquisition finale en cours
+    if (timeNow - finalAcqStart >= acquTime) {
+      // Acquisition finale terminée, on arrête tout
+      for (int i = 0; i < NB_LEDS; i++) digitalWrite(LEDS[i], LOW);
+      digitalWrite(LEDopto, LOW);
+      digitalWrite(CAM, LOW);
+      return;
+    }
+  }
+  // ---------------------------------------------
 
-  if (digitalRead(STATUS_ONOFF) == LOW) {
+  // Arrêt du protocole après NB_CYCLES (avant acquisition finale)
+  if (protocolDone && finalAcquisition == false) {
+    // On laisse la gestion à la section acquisition finale ci-dessus
+    // (ne rien faire ici)
+  }
+  else if (digitalRead(STATUS_ONOFF) == LOW) {
     for (int i = 0; i < NB_LEDS; i++) digitalWrite(LEDS[i], LOW);
     digitalWrite(LEDopto, LOW);
     digitalWrite(CAM, LOW);
@@ -123,8 +146,10 @@ void loop() {
     ledBeforeOpto = ledBeforeOptoList[0];
     cycleCounter = 0;
     protocolDone = false;
+    finalAcquisition = false;
+    finalAcqStart = 0;
   } 
-  else if (digitalRead(STATUS_ONOFF) == HIGH) {
+  else if (digitalRead(STATUS_ONOFF) == HIGH && !(protocolDone && finalAcquisition)) {
     // Alternate acquisition/stimulation
     if (FLAG_STIM == 0) {
       if (timeNow - lastStim >= acquTime) {
