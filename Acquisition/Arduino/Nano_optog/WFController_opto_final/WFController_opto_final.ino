@@ -16,8 +16,6 @@ int STATUS630 = 6;
 int STATUS785 = 7; 
 int STATUS_ONOFF = 1;
 
-// int AnalogPin = A5; // Debugging
-
 //To control camera and light source
 int FPS = 50; //Hz
 bool FLAG_CAM = 0; // for camera trigger
@@ -53,8 +51,8 @@ int freqIndex = 0;
 int ledBeforeOpto = ledBeforeOptoList[0]; // Initial value
 
 // --------- Ajout pour nombre de cycles ---------
-int NB_CYCLES = 5;      // Nombre de cycles souhaité
-int cycleCounter = 0;   // Compteur de cycles
+int NB_CYCLES = 2;      // Nombre de répétitions par fréquence
+int freqCounters[NB_FREQ] = {0}; // Compteur pour chaque fréquence
 bool protocolDone = false;
 // ----------------------------------------------
 
@@ -64,8 +62,6 @@ unsigned long finalAcqStart = 0;
 // -----------------------------------------------
 
 void setup() {
-  // Serial.begin(19200);   // debugging with analog pin
-
   //OUTPUT PINS
   pinMode(CAM, OUTPUT);
   digitalWrite(CAM, LOW);
@@ -126,7 +122,7 @@ void loop() {
   }
   // ---------------------------------------------
 
-  // Arrêt du protocole après NB_CYCLES (avant acquisition finale)
+  // Arrêt du protocole après NB_CYCLES pour chaque fréquence (avant acquisition finale)
   if (protocolDone && finalAcquisition == false) {
     // On laisse la gestion à la section acquisition finale ci-dessus
     // (ne rien faire ici)
@@ -144,7 +140,7 @@ void loop() {
     lastLEDIndex = 0;
     freqIndex = 0;
     ledBeforeOpto = ledBeforeOptoList[0];
-    cycleCounter = 0;
+    for (int i = 0; i < NB_FREQ; i++) freqCounters[i] = 0;
     protocolDone = false;
     finalAcquisition = false;
     finalAcqStart = 0;
@@ -162,16 +158,22 @@ void loop() {
         lastStim = timeNow;
         ledCounter = 0;
 
-        // Next frequency
+        // Incrémenter le compteur pour la fréquence courante
+        freqCounters[freqIndex]++;
+        // Passer à la fréquence suivante
         freqIndex = (freqIndex + 1) % NB_FREQ;
         ledBeforeOpto = ledBeforeOptoList[freqIndex];
 
-        // Incrémenter le compteur de cycles à chaque retour à la première fréquence
-        if (freqIndex == 0) {
-          cycleCounter++;
-          if (cycleCounter >= NB_CYCLES) {
-            protocolDone = true;
+        // Vérifier si toutes les fréquences ont atteint NB_CYCLES
+        bool allDone = true;
+        for (int i = 0; i < NB_FREQ; i++) {
+          if (freqCounters[i] < NB_CYCLES) {
+            allDone = false;
+            break;
           }
+        }
+        if (allDone) {
+          protocolDone = true;
         }
       }
     }
