@@ -18,7 +18,6 @@ int STATUS_ONOFF = 1;
 
 // int AnalogPin = A5; // Debugging
 
-
 //To control camera and light source
 int FPS = 50; //Hz
 bool FLAG_CAM = 0; // for camera trigger
@@ -38,7 +37,6 @@ unsigned long lastStim = 0;    // time of the last optogenetics stimulation
 unsigned long lastAcqu = 0;    // time of the last acquisition in optogenetics
 
 bool FLAG_STIM = 0;   // To know if in a stimulation or in an acquisition stage
-// bool FLAG_ACQU = 1;   // optogenetics flag
 bool FLAG_OPTO_ON = 0;   // To know if within a stimulation, opto trigg is on or not (if in a opto blink cycle or not)
 
 // --- Change for variable opto frequency ---
@@ -53,6 +51,12 @@ const int ledBeforeOptoList[] = {3, 5, 10}; // Frequency = FPS / (ledBeforeOpto 
 const int NB_FREQ = sizeof(ledBeforeOptoList) / sizeof(ledBeforeOptoList[0]);
 int freqIndex = 0;
 int ledBeforeOpto = ledBeforeOptoList[0]; // Initial value
+
+// --------- Ajout pour nombre de cycles ---------
+int NB_CYCLES = 5;      // Nombre de cycles souhaité
+int cycleCounter = 0;   // Compteur de cycles
+bool protocolDone = false;
+// ----------------------------------------------
 
 void setup() {
   // Serial.begin(19200);   // debugging with analog pin
@@ -94,8 +98,15 @@ void setup() {
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
   timeNow = micros();
+
+  // Arrêt du protocole après NB_CYCLES
+  if (protocolDone) {
+    for (int i = 0; i < NB_LEDS; i++) digitalWrite(LEDS[i], LOW);
+    digitalWrite(LEDopto, LOW);
+    digitalWrite(CAM, LOW);
+    return;
+  }
 
   if (digitalRead(STATUS_ONOFF) == LOW) {
     for (int i = 0; i < NB_LEDS; i++) digitalWrite(LEDS[i], LOW);
@@ -110,6 +121,8 @@ void loop() {
     lastLEDIndex = 0;
     freqIndex = 0;
     ledBeforeOpto = ledBeforeOptoList[0];
+    cycleCounter = 0;
+    protocolDone = false;
   } 
   else if (digitalRead(STATUS_ONOFF) == HIGH) {
     // Alternate acquisition/stimulation
@@ -127,6 +140,14 @@ void loop() {
         // Next frequency
         freqIndex = (freqIndex + 1) % NB_FREQ;
         ledBeforeOpto = ledBeforeOptoList[freqIndex];
+
+        // Incrémenter le compteur de cycles à chaque retour à la première fréquence
+        if (freqIndex == 0) {
+          cycleCounter++;
+          if (cycleCounter >= NB_CYCLES) {
+            protocolDone = true;
+          }
+        }
       }
     }
 
