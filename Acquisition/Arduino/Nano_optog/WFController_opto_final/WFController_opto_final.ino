@@ -50,17 +50,6 @@ const int NB_FREQ = sizeof(ledBeforeOptoList) / sizeof(ledBeforeOptoList[0]);
 int freqIndex = 0;
 int ledBeforeOpto = ledBeforeOptoList[0]; // Initial value
 
-// --------- Ajout pour nombre de cycles ---------
-int NB_CYCLES = 2;      // Nombre de répétitions par fréquence
-int freqCounters[NB_FREQ] = {0}; // Compteur pour chaque fréquence
-bool protocolDone = false;
-// ----------------------------------------------
-
-// --------- Ajout pour acquisition finale ---------
-bool finalAcquisition = false;
-unsigned long finalAcqStart = 0;
-// -----------------------------------------------
-
 void setup() {
   //OUTPUT PINS
   pinMode(CAM, OUTPUT);
@@ -101,33 +90,7 @@ void setup() {
 void loop() {
   timeNow = micros();
 
-  // --------- Gestion acquisition finale ---------
-  if (protocolDone && !finalAcquisition) {
-    // Démarre l'acquisition finale
-    finalAcquisition = true;
-    finalAcqStart = timeNow;
-    FLAG_STIM = 0; // Acquisition mode
-    ledCounter = 0;
-    // Les LEDs vont continuer à clignoter normalement
-  }
-  if (protocolDone && finalAcquisition) {
-    // Acquisition finale en cours
-    if (timeNow - finalAcqStart >= acquTime) {
-      // Acquisition finale terminée, on arrête tout
-      for (int i = 0; i < NB_LEDS; i++) digitalWrite(LEDS[i], LOW);
-      digitalWrite(LEDopto, LOW);
-      digitalWrite(CAM, LOW);
-      return;
-    }
-  }
-  // ---------------------------------------------
-
-  // Arrêt du protocole après NB_CYCLES pour chaque fréquence (avant acquisition finale)
-  if (protocolDone && finalAcquisition == false) {
-    // On laisse la gestion à la section acquisition finale ci-dessus
-    // (ne rien faire ici)
-  }
-  else if (digitalRead(STATUS_ONOFF) == LOW) {
+  if (digitalRead(STATUS_ONOFF) == LOW) {
     for (int i = 0; i < NB_LEDS; i++) digitalWrite(LEDS[i], LOW);
     digitalWrite(LEDopto, LOW);
     digitalWrite(CAM, LOW);
@@ -140,12 +103,8 @@ void loop() {
     lastLEDIndex = 0;
     freqIndex = 0;
     ledBeforeOpto = ledBeforeOptoList[0];
-    for (int i = 0; i < NB_FREQ; i++) freqCounters[i] = 0;
-    protocolDone = false;
-    finalAcquisition = false;
-    finalAcqStart = 0;
   } 
-  else if (digitalRead(STATUS_ONOFF) == HIGH && !(protocolDone && finalAcquisition)) {
+  else if (digitalRead(STATUS_ONOFF) == HIGH) {
     // Alternate acquisition/stimulation
     if (FLAG_STIM == 0) {
       if (timeNow - lastStim >= acquTime) {
@@ -158,23 +117,9 @@ void loop() {
         lastStim = timeNow;
         ledCounter = 0;
 
-        // Incrémenter le compteur pour la fréquence courante
-        freqCounters[freqIndex]++;
-        // Passer à la fréquence suivante
+        // Next frequency
         freqIndex = (freqIndex + 1) % NB_FREQ;
         ledBeforeOpto = ledBeforeOptoList[freqIndex];
-
-        // Vérifier si toutes les fréquences ont atteint NB_CYCLES
-        bool allDone = true;
-        for (int i = 0; i < NB_FREQ; i++) {
-          if (freqCounters[i] < NB_CYCLES) {
-            allDone = false;
-            break;
-          }
-        }
-        if (allDone) {
-          protocolDone = true;
-        }
       }
     }
 
