@@ -59,6 +59,12 @@ unsigned long finalAcqStart = 0;
 unsigned long finalAcqDuration = 5UL * 60UL * 1000000UL; // 5 minutes en microsecondes
 // ----------------------------------------------------------
 
+// --------- Acquisition initiale ---------
+unsigned long firstAcqDuration = 30UL * 1000000UL; // 30 secondes (modifiable)
+bool firstAcqDone = false;
+unsigned long firstAcqStart = 0;
+// ----------------------------------------
+
 void setup() {
   //OUTPUT PINS
   pinMode(CAM, OUTPUT);
@@ -117,6 +123,74 @@ void loop() {
     protocolDone = false;
     finalAcquisition = false;
     finalAcqStart = 0;
+    firstAcqDone = false;
+    firstAcqStart = 0;
+    return;
+  }
+
+  // --------- ACQUISITION INITIALE (avant tout protocole) ---------
+  if (!firstAcqDone) {
+    if (firstAcqStart == 0) {
+      firstAcqStart = timeNow;
+      // Allume la première LED active ou la première de la liste
+      int firstLED = -1;
+      for (int i = 0; i < NB_LEDS; i++) {
+        if (digitalRead(STATUS[i]) == HIGH) {
+          digitalWrite(LEDS[i], HIGH);
+          lastLEDIndex = i;
+          firstLED = i;
+          break;
+        }
+      }
+      if (firstLED == -1) {
+        digitalWrite(LEDS[0], HIGH);
+        lastLEDIndex = 0;
+      }
+      lastBlink = timeNow;
+      FLAG_CAM = 1;
+    }
+
+    // Alternance LEDs/caméra pendant la durée voulue
+    if (timeNow - lastBlink > 1000000/FPS) {
+      int currentLED = -1;
+      for (int i = 0; i < NB_LEDS; i++) {
+        if (digitalRead(LEDS[i]) == HIGH) {
+          currentLED = i;
+          digitalWrite(LEDS[i], LOW);
+          break;
+        }
+      }
+      int nextLED = (currentLED == -1) ? (lastLEDIndex + 1) % NB_LEDS : (currentLED + 1) % NB_LEDS;
+      digitalWrite(LEDS[nextLED], HIGH);
+      lastLEDIndex = nextLED;
+      lastBlink = timeNow;
+      FLAG_CAM = 1;
+    }
+
+    // Déclenchement caméra
+    bool anyLEDOn = false;
+    for (int i = 0; i < NB_LEDS; i++) {
+      if (digitalRead(LEDS[i]) == HIGH) {
+        anyLEDOn = true;
+        break;
+      }
+    }
+    if (anyLEDOn && FLAG_CAM == 1 && (timeNow - lastBlink > camDelay)) {
+      digitalWrite(CAM, HIGH);
+      FLAG_CAM = 0;
+    }
+    if (timeNow - lastBlink > camSig) {
+      digitalWrite(CAM, LOW);
+    }
+
+    // Fin de l'acquisition initiale
+    if (timeNow - firstAcqStart >= firstAcqDuration) {
+      for (int i = 0; i < NB_LEDS; i++) digitalWrite(LEDS[i], LOW);
+      digitalWrite(CAM, LOW);
+      firstAcqDone = true;
+      // Prépare le protocole normal
+      lastBlink = timeNow;
+    }
     return;
   }
 
