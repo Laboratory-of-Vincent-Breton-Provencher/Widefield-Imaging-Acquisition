@@ -8,7 +8,8 @@ import os
 DO_GCAMP = False
 DO_HB = False
 DO_LSCI = False
-DO_FACE = True
+DO_FACE = False
+DO_PUPIL = False
 
 # --- Sélection du dossier via boîte de dialogue ---
 root = Tk()
@@ -21,16 +22,31 @@ if not data_path:
 figures_path = os.path.join(data_path, "Figures")
 os.makedirs(figures_path, exist_ok=True)
 
-# --- Paramètres communs ---
-stim_16_7 = [20, 86, 152, 218, 284]
-stim_8_3  = [42, 108, 174, 240, 306]
-stim_4_16 = [64, 130, 196, 262, 328]
-stim_dur = 2
-window_before = 5
-window_after = 10
+# Paramètres communs
+baseline_init = 2 * 60  # 2 min en secondes
+stim_dur = 2            # 2 s
+baseline_between = 20   # 20 s
+cycles = 10              # nombre de stimulations par fréquence
+
 freqs = [16.7, 8.3, 4.16]
-stim_sets = [stim_16_7, stim_8_3, stim_4_16]
 colors = ['forestgreen', 'royalblue', 'orange']
+
+stim_16_7 = []
+stim_8_3 = []
+stim_4_16 = []
+
+t = baseline_init
+for i in range(cycles):
+    stim_16_7.append(t)
+    t += stim_dur + baseline_between
+    stim_8_3.append(t)
+    t += stim_dur + baseline_between
+    stim_4_16.append(t)
+    t += stim_dur + baseline_between
+
+stim_sets = [stim_16_7, stim_8_3, stim_4_16]
+
+print(stim_sets)
 
 def extract_trials(trace, ts, stim_times, window_before, stim_dur, window_after):
     trials = []
@@ -296,3 +312,63 @@ if DO_FACE:
         plt.savefig(fig_name, dpi=300)
         plt.close(fig)
         print(f"Figure sauvegardée dans : {fig_name}")
+
+# --- Pupil ---
+# ...existing code...
+
+if DO_FACE:
+    # Utilise area_smooth et timestamps déjà chargés
+    face_norm = (area_smooth - np.min(area_smooth)) / (np.max(area_smooth) - np.min(area_smooth))
+    ts_sorted_trunc = timestamps
+
+    # Extraction des essais pour chaque fréquence
+    trial_sets = []
+    t_windows = []
+    for stim_times in stim_sets:
+        trials, t_win = extract_trials(face_norm, ts_sorted_trunc, stim_times, window_before, stim_dur, window_after)
+        trial_sets.append(trials)
+        t_windows.append(t_win)
+
+    fig = plt.figure(figsize=(18, 10))
+    fig.suptitle("Raster - Pupille (area_smooth)")
+
+    # Signal global tronqué
+    ax0 = plt.subplot2grid((3, 3), (0, 0), colspan=3)
+    ax0.plot(ts_sorted_trunc, face_norm, color='black', label='Aire pupille (norm.)')
+    for stim, col, label in zip(stim_sets, colors, [f"{f} Hz" for f in freqs]):
+        for s in stim:
+            ax0.axvline(s, color=col, linestyle='--', alpha=0.7, label=label if s == stim[0] else "")
+    ax0.set_xlabel("Temps (s)")
+    ax0.set_ylabel("Aire pupille (normalisée)")
+    handles, labels_ = ax0.get_legend_handles_labels()
+    by_label = dict(zip(labels_, handles))
+    ax0.legend(by_label.values(), by_label.keys())
+
+    # Raster et moyenne ± SEM pour chaque fréquence
+    for i, (freq, trials, t_win, col) in enumerate(zip(freqs, trial_sets, t_windows, colors)):
+        # Raster
+        ax_raster = plt.subplot2grid((3, 3), (1, i))
+        im = ax_raster.imshow(trials, aspect='auto', extent=[t_win[0], t_win[-1], 0, trials.shape[0]],
+                              origin='lower', cmap='Greens', interpolation='none')
+        ax_raster.axvspan(0, stim_dur, color=col, alpha=0.2)
+        ax_raster.set_title(f"{freq} Hz")
+        ax_raster.set_xlabel("Temps relatif à la stim (s)")
+        ax_raster.set_ylabel("Essai")
+        plt.colorbar(im, ax=ax_raster, label="Aire norm.")
+
+        # Moyenne ± SEM
+        ax_avg = plt.subplot2grid((3, 3), (2, i))
+        avg = trials.mean(axis=0)
+        std = sem(trials, axis=0)
+        ax_avg.axvspan(0, stim_dur, color=col, alpha=0.2)
+        ax_avg.plot(t_win, avg, color=col, label=f"{freq} Hz")
+        ax_avg.fill_between(t_win, avg-std, avg+std, color=col, alpha=0.3)
+        ax_avg.set_xlabel("Temps relatif à la stim (s)")
+        ax_avg.set_ylabel("Aire norm.")
+        ax_avg.legend()
+
+    plt.tight_layout()
+    fig_name = os.path.join(figures_path, "Raster_Pupil.png")
+    plt.savefig(fig_name, dpi=300)
+    plt.close(fig)
+    print(f"Figure sauvegardée dans : {fig_name}")
