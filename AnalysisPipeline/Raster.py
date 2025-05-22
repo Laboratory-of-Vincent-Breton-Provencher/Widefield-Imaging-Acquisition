@@ -9,7 +9,7 @@ DO_GCAMP = False
 DO_HB = False
 DO_LSCI = False
 DO_FACE = False
-DO_PUPIL = False
+DO_PUPIL = True
 
 # --- Sélection du dossier via boîte de dialogue ---
 root = Tk()
@@ -35,6 +35,9 @@ stim_16_7 = []
 stim_8_3 = []
 stim_4_16 = []
 
+window_before = 5
+window_after = 15
+
 t = baseline_init
 for i in range(cycles):
     stim_16_7.append(t)
@@ -46,7 +49,6 @@ for i in range(cycles):
 
 stim_sets = [stim_16_7, stim_8_3, stim_4_16]
 
-print(stim_sets)
 
 def extract_trials(trace, ts, stim_times, window_before, stim_dur, window_after):
     trials = []
@@ -314,18 +316,37 @@ if DO_FACE:
         print(f"Figure sauvegardée dans : {fig_name}")
 
 # --- Pupil ---
-# ...existing code...
 
-if DO_FACE:
-    # Utilise area_smooth et timestamps déjà chargés
-    face_norm = (area_smooth - np.min(area_smooth)) / (np.max(area_smooth) - np.min(area_smooth))
+
+pupille = np.load("2025-05-22_pupil_opto_proc.npy", allow_pickle=True).item()
+area_smooth = pupille['pupil'][0]['area_smooth']
+diam_smooth = 2 * np.sqrt(area_smooth / np.pi)
+
+FPS = 25
+timestamps = np.arange(len(area_smooth)) / FPS
+
+# Centrage sur la moyenne
+diam_centered = diam_smooth - np.mean(diam_smooth)
+
+# Normalisation min-max
+diam_norm = (diam_smooth - np.min(diam_smooth)) / (np.max(diam_smooth) - np.min(diam_smooth))
+
+# Z-score (centré-réduit)
+diam_zscore = (diam_smooth - np.mean(diam_smooth)) / np.std(diam_smooth)
+
+# Lissage (fenêtre de 1 seconde si FPS=25)
+window = 25
+diam_smooth_smooth = np.convolve(diam_smooth, np.ones(window)/window, mode='same')
+
+if DO_PUPIL:
+    diam_norm = diam_smooth_smooth
     ts_sorted_trunc = timestamps
 
     # Extraction des essais pour chaque fréquence
     trial_sets = []
     t_windows = []
     for stim_times in stim_sets:
-        trials, t_win = extract_trials(face_norm, ts_sorted_trunc, stim_times, window_before, stim_dur, window_after)
+        trials, t_win = extract_trials(diam_norm, ts_sorted_trunc, stim_times, window_before, stim_dur, window_after)
         trial_sets.append(trials)
         t_windows.append(t_win)
 
@@ -334,7 +355,7 @@ if DO_FACE:
 
     # Signal global tronqué
     ax0 = plt.subplot2grid((3, 3), (0, 0), colspan=3)
-    ax0.plot(ts_sorted_trunc, face_norm, color='black', label='Aire pupille (norm.)')
+    ax0.plot(ts_sorted_trunc, diam_norm, color='black', label='Aire pupille (norm.)')
     for stim, col, label in zip(stim_sets, colors, [f"{f} Hz" for f in freqs]):
         for s in stim:
             ax0.axvline(s, color=col, linestyle='--', alpha=0.7, label=label if s == stim[0] else "")
