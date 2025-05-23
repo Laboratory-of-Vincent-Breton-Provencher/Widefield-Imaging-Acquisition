@@ -25,10 +25,10 @@ os.makedirs(figures_path, exist_ok=True)
 # Paramètres communs
 baseline_init = 2 * 60  # 2 min en secondes
 stim_dur = 2            # 2 s
-baseline_between = 20   # 20 s
+baseline_between = 30   # 20 s
 cycles = 10              # nombre de stimulations par fréquence
 
-freqs = [16.7, 8.3, 4.16]
+freqs = [4.16, 8.3, 16.6]
 colors = ['forestgreen', 'royalblue', 'orange']
 
 stim_16_7 = []
@@ -40,14 +40,14 @@ window_after = 15
 
 t = baseline_init
 for i in range(cycles):
-    stim_16_7.append(t)
+    stim_4_16.append(t)
     t += stim_dur + baseline_between
     stim_8_3.append(t)
     t += stim_dur + baseline_between
-    stim_4_16.append(t)
+    stim_16_7.append(t)
     t += stim_dur + baseline_between
 
-stim_sets = [stim_16_7, stim_8_3, stim_4_16]
+stim_sets = [stim_4_16, stim_8_3, stim_16_7]
 
 
 def extract_trials(trace, ts, stim_times, window_before, stim_dur, window_after):
@@ -318,28 +318,17 @@ if DO_FACE:
 # --- Pupil ---
 
 
-pupille = np.load("2025-05-22_pupil_opto_proc.npy", allow_pickle=True).item()
+pupille = np.load("temp-05232025092936-0000_proc.npy", allow_pickle=True).item()
 area_smooth = pupille['pupil'][0]['area_smooth']
 diam_smooth = 2 * np.sqrt(area_smooth / np.pi)
 
-FPS = 25
-timestamps = np.arange(len(area_smooth)) / FPS
 
-# Centrage sur la moyenne
-diam_centered = diam_smooth - np.mean(diam_smooth)
-
-# Normalisation min-max
-diam_norm = (diam_smooth - np.min(diam_smooth)) / (np.max(diam_smooth) - np.min(diam_smooth))
-
-# Z-score (centré-réduit)
-diam_zscore = (diam_smooth - np.mean(diam_smooth)) / np.std(diam_smooth)
-
-# Lissage (fenêtre de 1 seconde si FPS=25)
-window = 25
-diam_smooth_smooth = np.convolve(diam_smooth, np.ones(window)/window, mode='same')
+len_diam = len(diam_smooth)
+frame_duration = 1343.8658 / len_diam
+timestamps = np.arange(0, len_diam * frame_duration, frame_duration)
 
 if DO_PUPIL:
-    diam_norm = diam_smooth_smooth
+    diam_norm = diam_smooth
     ts_sorted_trunc = timestamps
 
     # Extraction des essais pour chaque fréquence
@@ -351,16 +340,16 @@ if DO_PUPIL:
         t_windows.append(t_win)
 
     fig = plt.figure(figsize=(18, 10))
-    fig.suptitle("Raster - Pupille (area_smooth)")
+    fig.suptitle("Raster - Pupille")
 
     # Signal global tronqué
     ax0 = plt.subplot2grid((3, 3), (0, 0), colspan=3)
-    ax0.plot(ts_sorted_trunc, diam_norm, color='black', label='Aire pupille (norm.)')
+    ax0.plot(ts_sorted_trunc, diam_norm, color='black', label='Diamètre pupille (norm.)')
     for stim, col, label in zip(stim_sets, colors, [f"{f} Hz" for f in freqs]):
         for s in stim:
             ax0.axvline(s, color=col, linestyle='--', alpha=0.7, label=label if s == stim[0] else "")
     ax0.set_xlabel("Temps (s)")
-    ax0.set_ylabel("Aire pupille (normalisée)")
+    ax0.set_ylabel("Diamètre pupille (normalisée)")
     handles, labels_ = ax0.get_legend_handles_labels()
     by_label = dict(zip(labels_, handles))
     ax0.legend(by_label.values(), by_label.keys())
@@ -375,7 +364,7 @@ if DO_PUPIL:
         ax_raster.set_title(f"{freq} Hz")
         ax_raster.set_xlabel("Temps relatif à la stim (s)")
         ax_raster.set_ylabel("Essai")
-        plt.colorbar(im, ax=ax_raster, label="Aire norm.")
+        plt.colorbar(im, ax=ax_raster, label="Diamètre norm.")
 
         # Moyenne ± SEM
         ax_avg = plt.subplot2grid((3, 3), (2, i))
@@ -385,7 +374,7 @@ if DO_PUPIL:
         ax_avg.plot(t_win, avg, color=col, label=f"{freq} Hz")
         ax_avg.fill_between(t_win, avg-std, avg+std, color=col, alpha=0.3)
         ax_avg.set_xlabel("Temps relatif à la stim (s)")
-        ax_avg.set_ylabel("Aire norm.")
+        ax_avg.set_ylabel("Diamètre norm.")
         ax_avg.legend()
 
     plt.tight_layout()
