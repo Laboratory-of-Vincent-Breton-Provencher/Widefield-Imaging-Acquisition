@@ -319,7 +319,7 @@ if DO_FACE:
 # --- Pupil ---
 
 
-pupille = np.load("temp-05232025092936-0000_proc.npy", allow_pickle=True).item()
+pupille = np.load("2025-05-27.npy", allow_pickle=True).item()
 area_smooth = pupille['pupil'][0]['area_smooth']
 diam_smooth = 2 * np.sqrt(area_smooth / np.pi)
 
@@ -370,7 +370,7 @@ if DO_PUPIL:
         # Moyenne ± SEM
         ax_avg = plt.subplot2grid((3, 3), (2, i))
         avg = trials.mean(axis=0)
-        std = sem(trials, axis=0)
+        std = sem(trials, axis=0)  # <--- Remis en SEM ici
         ax_avg.axvspan(0, stim_dur, color=col, alpha=0.2)
         ax_avg.plot(t_win, avg, color=col, label=f"{freq} Hz")
         ax_avg.fill_between(t_win, avg-std, avg+std, color=col, alpha=0.3)
@@ -384,13 +384,11 @@ if DO_PUPIL:
     plt.close(fig)
     print(f"Figure sauvegardée dans : {fig_name}")
 
-    # === Nouvelle figure : toutes les moyennes superposées, lissées ===
     plt.figure(figsize=(8, 5))
     for i, (freq, trials, t_win, col) in enumerate(zip(freqs, trial_sets, t_windows, colors)):
         avg = trials.mean(axis=0)
-        std = sem(trials, axis=0)
-        # Lissage Savitzky-Golay (adapte window_length si besoin)
-        window_length = min(11, len(avg) // 2 * 2 + 1)  # doit être impair et <= len(avg)
+        std = sem(trials, axis=0)  # <--- Remis en SEM ici aussi
+        window_length = min(11, len(avg) // 2 * 2 + 1)
         avg_smooth = savgol_filter(avg, window_length=window_length, polyorder=2)
         std_smooth = savgol_filter(std, window_length=window_length, polyorder=2)
         plt.plot(t_win, avg_smooth, color=col, label=f"{freq} Hz")
