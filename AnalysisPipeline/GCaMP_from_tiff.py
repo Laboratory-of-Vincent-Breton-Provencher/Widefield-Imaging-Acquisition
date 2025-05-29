@@ -102,7 +102,7 @@ def GCaMP_pipeline(data_path:str, save_path:str, event_timestamps:list=None, Ns_
                     print("Purple data preprocessed and saved")
 
             # convert to neuronal activity
-            print("Converting to dHb")
+            print("Converting to neuronal activity")
             blue = np.load(os.path.join(data_path, "470_preprocessed.npy"))
             if isosbectic:
                 purple = np.load(os.path.join(data_path, "405_preprocessed.npy"))
